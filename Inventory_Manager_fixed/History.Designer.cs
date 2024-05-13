@@ -16,30 +16,31 @@
 
         private void InitializeComponent()
         {
-            this.historyDataGridView = new System.Windows.Forms.DataGridView();
-            ((System.ComponentModel.ISupportInitialize)(this.historyDataGridView)).BeginInit();
-            this.SuspendLayout();
+            historyDataGridView = new DataGridView();
+            ((System.ComponentModel.ISupportInitialize)historyDataGridView).BeginInit();
+            SuspendLayout();
             // 
             // historyDataGridView
             // 
-            this.historyDataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.historyDataGridView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.historyDataGridView.Location = new System.Drawing.Point(0, 0);
-            this.historyDataGridView.Name = "historyDataGridView";
-            this.historyDataGridView.Size = new System.Drawing.Size(800, 450);
-            this.historyDataGridView.TabIndex = 0;
+            historyDataGridView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            historyDataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            historyDataGridView.Location = new Point(13, 100);
+            historyDataGridView.Margin = new Padding(4, 3, 4, 3);
+            historyDataGridView.Name = "historyDataGridView";
+            historyDataGridView.Size = new Size(1024, 523);
+            historyDataGridView.TabIndex = 0;
             // 
             // History
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.historyDataGridView);
-            this.Name = "History";
-            this.Text = "History";
-            ((System.ComponentModel.ISupportInitialize)(this.historyDataGridView)).EndInit();
-            this.ResumeLayout(false);
-
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(1050, 635);
+            Controls.Add(historyDataGridView);
+            Margin = new Padding(4, 3, 4, 3);
+            Name = "History";
+            Text = "History";
+            ((System.ComponentModel.ISupportInitialize)historyDataGridView).EndInit();
+            ResumeLayout(false);
         }
     }
 }

@@ -10,7 +10,7 @@ namespace Inventory.DB_Interaction
     {
         public static string select_Product = "Select * FROM product ORDER BY id ASC"; // shows all product
 
-        public static string product_add = "INSERT INTO product(model_number,type,quantity,barcode) VALUES('{0}','{1}',{2},'{3}');"; // adds a product
+        public static string product_add = "INSERT INTO product(model_number,type,quantity,barcode,require_serial_number) VALUES('{0}','{1}',{2},'{3}',{4});"; // adds a product
 
         public static string product_update = "UPDATE product SET quantity = {0} WHERE barcode = '{1}'"; //updates product quantity based on barcode
 

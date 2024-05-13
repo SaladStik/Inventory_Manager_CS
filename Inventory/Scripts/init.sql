@@ -16,7 +16,8 @@ CREATE TABLE product(
 	model_number	VARCHAR(255)		NOT NULL UNIQUE,
 	type			VARCHAR(255),
 	quantity		INTEGER				NOT NULL,
-	barcode			VARCHAR(255)		NOT NULL UNIQUE 
+	barcode			VARCHAR(255)		NOT NULL UNIQUE,
+	require_serial_number BOOLEAN		NOT NULL
 ); 
 
 CREATE TABLE location(
