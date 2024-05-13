@@ -167,10 +167,10 @@
             searchTabs.Controls.Add(tabPage1);
             searchTabs.Controls.Add(tabPage3);
             searchTabs.Controls.Add(tabPage2);
-            searchTabs.Location = new Point(14, 12);
+            searchTabs.Location = new Point(10, 12);
             searchTabs.Name = "searchTabs";
             searchTabs.SelectedIndex = 0;
-            searchTabs.Size = new Size(887, 100);
+            searchTabs.Size = new Size(891, 100);
             searchTabs.TabIndex = 11;
             // 
             // tabPage1
@@ -180,7 +180,7 @@
             tabPage1.Location = new Point(4, 24);
             tabPage1.Name = "tabPage1";
             tabPage1.Padding = new Padding(3);
-            tabPage1.Size = new Size(879, 72);
+            tabPage1.Size = new Size(883, 72);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Search";
             tabPage1.UseVisualStyleBackColor = true;
@@ -196,7 +196,7 @@
             tabPage3.Location = new Point(4, 24);
             tabPage3.Name = "tabPage3";
             tabPage3.Padding = new Padding(3);
-            tabPage3.Size = new Size(879, 72);
+            tabPage3.Size = new Size(883, 72);
             tabPage3.TabIndex = 2;
             tabPage3.Text = "Product Creation";
             tabPage3.UseVisualStyleBackColor = true;
@@ -208,7 +208,7 @@
             tabPage2.Location = new Point(4, 24);
             tabPage2.Name = "tabPage2";
             tabPage2.Padding = new Padding(3);
-            tabPage2.Size = new Size(879, 72);
+            tabPage2.Size = new Size(883, 72);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Location Creation";
             tabPage2.UseVisualStyleBackColor = true;
