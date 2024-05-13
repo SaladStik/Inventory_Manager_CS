@@ -14,6 +14,12 @@
         private System.Windows.Forms.CheckBox requireSerialNumberCheckBox;
         private System.Windows.Forms.Button quantityUp;
         private System.Windows.Forms.Button quantityDown;
+        private System.Windows.Forms.TabControl searchTabs; // renamed field
+        private System.Windows.Forms.TabPage tabPage1;
+        private System.Windows.Forms.TabPage tabPage3;
+        private System.Windows.Forms.TabPage tabPage2;
+        private System.Windows.Forms.TextBox locationNameTextBox;
+        private System.Windows.Forms.Button addLocationButton;
 
         protected override void Dispose(bool disposing)
         {
@@ -37,14 +43,17 @@
             requireSerialNumberCheckBox = new CheckBox();
             quantityUp = new Button();
             quantityDown = new Button();
-            Search_Tabs = new TabControl();
+            searchTabs = new TabControl();
             tabPage1 = new TabPage();
-            tabPage2 = new TabPage();
             tabPage3 = new TabPage();
+            tabPage2 = new TabPage();
+            locationNameTextBox = new TextBox();
+            addLocationButton = new Button();
             ((System.ComponentModel.ISupportInitialize)Product_List).BeginInit();
-            Search_Tabs.SuspendLayout();
+            searchTabs.SuspendLayout();
             tabPage1.SuspendLayout();
             tabPage3.SuspendLayout();
+            tabPage2.SuspendLayout();
             SuspendLayout();
             // 
             // Product_List
@@ -66,6 +75,7 @@
             searchTextBox.Location = new Point(7, 10);
             searchTextBox.Margin = new Padding(4, 3, 4, 3);
             searchTextBox.Name = "searchTextBox";
+            searchTextBox.PlaceholderText = "Search";
             searchTextBox.Size = new Size(233, 23);
             searchTextBox.TabIndex = 1;
             // 
@@ -152,16 +162,16 @@
             quantityDown.UseVisualStyleBackColor = true;
             quantityDown.Click += decreaseQuantityButton_Click;
             // 
-            // Search_Tabs
+            // searchTabs
             // 
-            Search_Tabs.Controls.Add(tabPage1);
-            Search_Tabs.Controls.Add(tabPage2);
-            Search_Tabs.Controls.Add(tabPage3);
-            Search_Tabs.Location = new Point(14, 12);
-            Search_Tabs.Name = "Search_Tabs";
-            Search_Tabs.SelectedIndex = 0;
-            Search_Tabs.Size = new Size(874, 100);
-            Search_Tabs.TabIndex = 11;
+            searchTabs.Controls.Add(tabPage1);
+            searchTabs.Controls.Add(tabPage3);
+            searchTabs.Controls.Add(tabPage2);
+            searchTabs.Location = new Point(14, 12);
+            searchTabs.Name = "searchTabs";
+            searchTabs.SelectedIndex = 0;
+            searchTabs.Size = new Size(887, 100);
+            searchTabs.TabIndex = 11;
             // 
             // tabPage1
             // 
@@ -170,20 +180,10 @@
             tabPage1.Location = new Point(4, 24);
             tabPage1.Name = "tabPage1";
             tabPage1.Padding = new Padding(3);
-            tabPage1.Size = new Size(866, 72);
+            tabPage1.Size = new Size(879, 72);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Search";
             tabPage1.UseVisualStyleBackColor = true;
-            // 
-            // tabPage2
-            // 
-            tabPage2.Location = new Point(4, 24);
-            tabPage2.Name = "tabPage2";
-            tabPage2.Padding = new Padding(3);
-            tabPage2.Size = new Size(660, 67);
-            tabPage2.TabIndex = 1;
-            tabPage2.Text = "Advanced Search";
-            tabPage2.UseVisualStyleBackColor = true;
             // 
             // tabPage3
             // 
@@ -196,10 +196,40 @@
             tabPage3.Location = new Point(4, 24);
             tabPage3.Name = "tabPage3";
             tabPage3.Padding = new Padding(3);
-            tabPage3.Size = new Size(660, 67);
+            tabPage3.Size = new Size(879, 72);
             tabPage3.TabIndex = 2;
             tabPage3.Text = "Product Creation";
             tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // tabPage2
+            // 
+            tabPage2.Controls.Add(locationNameTextBox);
+            tabPage2.Controls.Add(addLocationButton);
+            tabPage2.Location = new Point(4, 24);
+            tabPage2.Name = "tabPage2";
+            tabPage2.Padding = new Padding(3);
+            tabPage2.Size = new Size(879, 72);
+            tabPage2.TabIndex = 1;
+            tabPage2.Text = "Location Creation";
+            tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // locationNameTextBox
+            // 
+            locationNameTextBox.Location = new Point(6, 6);
+            locationNameTextBox.Name = "locationNameTextBox";
+            locationNameTextBox.PlaceholderText = "Location Name";
+            locationNameTextBox.Size = new Size(150, 23);
+            locationNameTextBox.TabIndex = 9;
+            // 
+            // addLocationButton
+            // 
+            addLocationButton.Location = new Point(162, 6);
+            addLocationButton.Name = "addLocationButton";
+            addLocationButton.Size = new Size(88, 27);
+            addLocationButton.TabIndex = 10;
+            addLocationButton.Text = "Add Location";
+            addLocationButton.UseVisualStyleBackColor = true;
+            addLocationButton.Click += addLocationButton_Click;
             // 
             // Form1
             // 
@@ -207,7 +237,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(971, 609);
             Controls.Add(Product_List);
-            Controls.Add(Search_Tabs);
+            Controls.Add(searchTabs);
             Controls.Add(quantityUp);
             Controls.Add(quantityDown);
             Margin = new Padding(4, 3, 4, 3);
@@ -215,17 +245,14 @@
             Text = "Form1";
             Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)Product_List).EndInit();
-            Search_Tabs.ResumeLayout(false);
+            searchTabs.ResumeLayout(false);
             tabPage1.ResumeLayout(false);
             tabPage1.PerformLayout();
             tabPage3.ResumeLayout(false);
             tabPage3.PerformLayout();
+            tabPage2.ResumeLayout(false);
+            tabPage2.PerformLayout();
             ResumeLayout(false);
         }
-
-        private TabControl Search_Tabs;
-        private TabPage tabPage1;
-        private TabPage tabPage2;
-        private TabPage tabPage3;
     }
 }

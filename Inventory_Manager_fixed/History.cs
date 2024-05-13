@@ -5,10 +5,11 @@ namespace Inventory_Manager
 {
     public partial class History : Form
     {
-        public History(DataTable historyData)
+        public History(DataTable dataTable)
         {
             InitializeComponent();
-            historyDataGridView.DataSource = historyData;
+            historyDataGridView.DataSource = dataTable;
         }
     }
+
 }

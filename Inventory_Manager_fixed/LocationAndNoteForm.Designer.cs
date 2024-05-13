@@ -21,10 +21,10 @@
         private void InitializeComponent()
         {
             this.locationComboBox = new System.Windows.Forms.ComboBox();
+            this.serialNumberComboBox = new System.Windows.Forms.ComboBox();
             this.noteTextBox = new System.Windows.Forms.TextBox();
             this.okButton = new System.Windows.Forms.Button();
             this.cancelButton = new System.Windows.Forms.Button();
-            this.serialNumberComboBox = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
             // locationComboBox

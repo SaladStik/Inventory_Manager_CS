@@ -23,18 +23,19 @@
             // historyDataGridView
             // 
             historyDataGridView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            historyDataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             historyDataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            historyDataGridView.Location = new Point(13, 100);
+            historyDataGridView.Location = new Point(14, 79);
             historyDataGridView.Margin = new Padding(4, 3, 4, 3);
             historyDataGridView.Name = "historyDataGridView";
-            historyDataGridView.Size = new Size(1024, 523);
+            historyDataGridView.Size = new Size(905, 427);
             historyDataGridView.TabIndex = 0;
             // 
             // History
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1050, 635);
+            ClientSize = new Size(933, 519);
             Controls.Add(historyDataGridView);
             Margin = new Padding(4, 3, 4, 3);
             Name = "History";

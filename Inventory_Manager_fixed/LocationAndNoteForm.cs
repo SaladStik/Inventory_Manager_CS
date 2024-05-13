@@ -15,6 +15,7 @@ namespace Inventory_Manager
         {
             InitializeComponent();
 
+            // Bind the ComboBox to display location names but use the location IDs as values
             locationComboBox.DataSource = locations;
             locationComboBox.DisplayMember = "Item2"; // Display location name
             locationComboBox.ValueMember = "Item1";   // Use location ID as value

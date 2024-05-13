@@ -16,9 +16,10 @@ namespace Inventory_Manager
             InitializeComponent();
             _dbIntegrator = new DB_Integrator();
         }
-        public static string insert_data_into_history_if_not_exists = "INSERT INTO history (id_product, id_location, id_action, serial_number, date, note)" +
-            " SELECT {0}, {1}, {2}, '{3}','{4}','{5}' " +
-            " WHERE NOT EXISTS ( SELECT * FROM history WHERE serial_number = '{3}');"; //this very long and more than likely bad piece of code is what allows me to add product histories
+        public static string insert_data_into_history_if_not_exists = @"
+        INSERT INTO history (id_product, id_location, serial_number, date, note)
+        SELECT {0}, {1}, '{2}', '{3}', '{4}'
+        WHERE NOT EXISTS (SELECT * FROM history WHERE serial_number = '{2}')";
 
         public static string search_function = @"
             SELECT * FROM product 
@@ -28,15 +29,19 @@ namespace Inventory_Manager
             OR barcode LIKE '%{0}%';";
 
         public static string select_All_From_History = @"
-            SELECT * FROM history 
-            WHERE id_product = {0} 
-            ORDER BY id ASC"; // Product history lookup
+             SELECT h.id, h.id_product, l.name AS location_name, h.serial_number, h.date, h.note
+             FROM history h
+             JOIN location l ON h.id_location = l.id
+             WHERE h.id_product = {0}
+             ORDER BY h.id ASC";
+
 
         public static string updateQuantity = @"
             UPDATE product
             SET quantity = quantity + {0}
             WHERE id = {1}";
-        public static string update_history_note = "UPDATE history SET note = '{0}' WHERE serial_number = '{1}' AND id_product = {2}"; //updates product history
+        public static string update_history_note = "UPDATE history SET note = '{0}', id_location = {3} WHERE serial_number = '{1}' AND id_product = {2}"; //updates product history
+        public static string insert_location = "INSERT INTO location(name) VALUES('{0}')";
 
         private async void Form1_Load(object sender, EventArgs e)
         {
@@ -47,7 +52,7 @@ namespace Inventory_Manager
 
         private async Task LoadDataGridAsync(int? selectedProductId = null)
         {
-            string query = "SELECT * FROM product"; // Replace with your actual query
+            string query = "SELECT * FROM product";
             DataTable dataTable = await _dbIntegrator.GetDataTableAsync(query, null);
 
             var sortColumn = Product_List.SortedColumn;
@@ -132,6 +137,7 @@ namespace Inventory_Manager
             }
         }
 
+
         private async void increaseQuantityButton_Click(object sender, EventArgs e)
         {
             await UpdateProductQuantityAsync(1);
@@ -161,31 +167,34 @@ namespace Inventory_Manager
                     }
                     foreach (string serialNumber in serialNumbers)
                     {
-                        string insertHistory = string.Format(insert_data_into_history_if_not_exists, productId, 1, 1, serialNumber, DateTime.Now.ToString("yyyy-MM-dd"), "null");
+                        string insertHistory = string.Format(insert_data_into_history_if_not_exists, productId, 1, serialNumber, DateTime.Now.ToString("yyyy-MM-dd"), "null");
                         await _dbIntegrator.Query(insertHistory, null);
                     }
                 }
                 else if (quantityChange < 0)
                 {
-                    // Get the serial numbers associated with this product
-                    string serialQuery = "SELECT serial_number FROM history WHERE id_product = " + productId;
-                    DataTable serialNumbersTable = await _dbIntegrator.GetDataTableAsync(serialQuery, null);
-                    List<string> serialNumbers = serialNumbersTable.AsEnumerable().Select(row => row.Field<string>("serial_number")).ToList();
-
-                    using (var form = new LocationAndNoteForm(await GetLocationsAsync(), serialNumbers))
+                    if (requireSerialNumber)
                     {
-                        if (form.ShowDialog() != DialogResult.OK)
+                        // Get the serial numbers associated with this product
+                        string serialQuery = "SELECT serial_number FROM history WHERE id_product = " + productId;
+                        DataTable serialNumbersTable = await _dbIntegrator.GetDataTableAsync(serialQuery, null);
+                        List<string> serialNumbers = serialNumbersTable.AsEnumerable().Select(row => row.Field<string>("serial_number")).ToList();
+
+                        using (var form = new LocationAndNoteForm(await GetLocationsAsync(), serialNumbers))
                         {
-                            // User canceled the location and note input
-                            return;
+                            if (form.ShowDialog() != DialogResult.OK)
+                            {
+                                // User canceled the location and note input
+                                return;
+                            }
+
+                            int locationId = form.SelectedLocationId;
+                            string note = form.Note;
+                            string selectedSerialNumber = form.SelectedSerialNumber;
+
+                            string updateHistoryNote = string.Format(update_history_note, note, selectedSerialNumber, productId, locationId);
+                            await _dbIntegrator.Query(updateHistoryNote, null);
                         }
-
-                        int locationId = form.SelectedLocationId;
-                        string note = form.Note;
-                        string selectedSerialNumber = form.SelectedSerialNumber;
-
-                        string updateHistoryNote = string.Format(update_history_note, note, selectedSerialNumber, productId);
-                        await _dbIntegrator.Query(updateHistoryNote, null);
                     }
                 }
 
@@ -201,17 +210,37 @@ namespace Inventory_Manager
             }
         }
 
+        private async void addLocationButton_Click(object sender, EventArgs e)
+        {
+            string locationName = locationNameTextBox.Text.Trim();
+
+            if (string.IsNullOrEmpty(locationName))
+            {
+                MessageBox.Show("Please enter a location name.");
+                return;
+            }
+
+            string query = string.Format(insert_location, locationName);
+
+            try
+            {
+                await _dbIntegrator.Query(query, null);
+                MessageBox.Show("Location added successfully.");
+                locationNameTextBox.Clear();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}");
+                Console.WriteLine(ex);
+            }
+        }
 
         private async Task<List<Tuple<int, string>>> GetLocationsAsync()
         {
-            string query = "SELECT id, name FROM location"; // Replace with your actual query
+            string query = "SELECT id, name FROM location";
             DataTable dataTable = await _dbIntegrator.GetDataTableAsync(query, null);
             return dataTable.AsEnumerable().Select(row => new Tuple<int, string>(row.Field<int>("id"), row.Field<string>("name"))).ToList();
         }
-
-
-
-
 
         private async void addButton_Click(object sender, EventArgs e)
         {
@@ -246,7 +275,7 @@ namespace Inventory_Manager
                     }
                     foreach (string serialNumber in serialNumbers)
                     {
-                        string insertHistory = string.Format(insert_data_into_history_if_not_exists, newProductId, 1, 1, serialNumber, DateTime.Now.ToString("yyyy-MM-dd"), "null");
+                        string insertHistory = string.Format(insert_data_into_history_if_not_exists, newProductId, 1, serialNumber, DateTime.Now.ToString("yyyy-MM-dd"), "null");
                         await _dbIntegrator.Query(insertHistory, null);
                     }
                 }
@@ -261,8 +290,6 @@ namespace Inventory_Manager
                 Console.WriteLine(ex);
             }
         }
-
-
 
         private void ClearProductFormFields()
         {
@@ -300,10 +327,5 @@ namespace Inventory_Manager
             }
             return serialNumbers;
         }
-
-
-
-
     }
 }
-
