@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Configuration;
+using System.Data;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -18,7 +19,7 @@ namespace Inventory.DB_Interaction
         public DB_Integrator()
         {
             
-            this.dataSource = new NpgsqlConnection(GetConnectionString());
+            dataSource = new NpgsqlConnection(GetConnectionString());
         }
 
         static string GetConnectionString()
@@ -75,7 +76,25 @@ namespace Inventory.DB_Interaction
             return result.ToString();
         }
 
-        
+        public async Task<DataTable> GetDataTableAsync(string sql, string[] args)
+        {
+            DataTable dataTable = new DataTable();
+            string formattedString = sql;
+            if (args != null) { formattedString = string.Format(sql, args); }
+            await Open();
+            try
+            {
+                using var command = new NpgsqlCommand(formattedString, dataSource);
+                using var adapter = new NpgsqlDataAdapter(command);
+                adapter.Fill(dataTable);
+            }
+            catch (Exception ex) { Console.WriteLine(ex); }
+            await Close();
+
+            return dataTable;
+        }
+
+
 
 
     }
