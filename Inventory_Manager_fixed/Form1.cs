@@ -795,5 +795,10 @@ namespace Inventory_Manager
                 MessageBox.Show("Please select a product to upload an image.");
             }
         }
+
+        private void SettingsButton_Click_1(object sender, EventArgs e)
+        {
+
+        }
     }
 }

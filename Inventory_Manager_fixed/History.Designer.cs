@@ -13,6 +13,7 @@ namespace Inventory_Manager
 
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(History));
             historyDataGridView = new DataGridView();
             searchHistory = new TextBox();
             searchHistoryButton = new Button();
@@ -25,27 +26,27 @@ namespace Inventory_Manager
             historyDataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             historyDataGridView.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             historyDataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            historyDataGridView.Location = new Point(20, 96);
-            historyDataGridView.Margin = new Padding(5, 6, 5, 6);
+            historyDataGridView.Location = new Point(14, 58);
+            historyDataGridView.Margin = new Padding(4, 4, 4, 4);
             historyDataGridView.Name = "historyDataGridView";
             historyDataGridView.RowHeadersWidth = 62;
-            historyDataGridView.Size = new Size(1267, 767);
+            historyDataGridView.Size = new Size(887, 460);
             historyDataGridView.TabIndex = 0;
             // 
             // searchHistory
             // 
-            searchHistory.Location = new Point(20, 23);
-            searchHistory.Margin = new Padding(5, 6, 5, 6);
+            searchHistory.Location = new Point(14, 14);
+            searchHistory.Margin = new Padding(4, 4, 4, 4);
             searchHistory.Name = "searchHistory";
-            searchHistory.Size = new Size(331, 31);
+            searchHistory.Size = new Size(233, 23);
             searchHistory.TabIndex = 1;
             // 
             // searchHistoryButton
             // 
-            searchHistoryButton.Location = new Point(363, 19);
-            searchHistoryButton.Margin = new Padding(5, 6, 5, 6);
+            searchHistoryButton.Location = new Point(254, 11);
+            searchHistoryButton.Margin = new Padding(4, 4, 4, 4);
             searchHistoryButton.Name = "searchHistoryButton";
-            searchHistoryButton.Size = new Size(125, 44);
+            searchHistoryButton.Size = new Size(88, 26);
             searchHistoryButton.TabIndex = 2;
             searchHistoryButton.Text = "Search";
             searchHistoryButton.UseVisualStyleBackColor = true;
@@ -53,13 +54,14 @@ namespace Inventory_Manager
             // 
             // History
             // 
-            AutoScaleDimensions = new SizeF(10F, 25F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1307, 887);
+            ClientSize = new Size(915, 532);
             Controls.Add(searchHistoryButton);
             Controls.Add(searchHistory);
             Controls.Add(historyDataGridView);
-            Margin = new Padding(5, 6, 5, 6);
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(4, 4, 4, 4);
             Name = "History";
             Text = "History";
             ((System.ComponentModel.ISupportInitialize)historyDataGridView).EndInit();

@@ -107,5 +107,10 @@ namespace Inventory_Manager
                 MessageBox.Show("Invalid settings. Please check the values entered.");
             }
         }
+
+        private void groupBox1_Enter(object sender, EventArgs e)
+        {
+
+        }
     }
 }

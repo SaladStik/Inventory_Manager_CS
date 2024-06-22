@@ -20,73 +20,73 @@
 
         private void InitializeComponent()
         {
-            this.locationComboBox = new System.Windows.Forms.ComboBox();
-            this.serialNumberComboBox = new System.Windows.Forms.ComboBox();
-            this.noteTextBox = new System.Windows.Forms.TextBox();
-            this.okButton = new System.Windows.Forms.Button();
-            this.cancelButton = new System.Windows.Forms.Button();
-            this.SuspendLayout();
+            locationComboBox = new ComboBox();
+            serialNumberComboBox = new ComboBox();
+            noteTextBox = new TextBox();
+            okButton = new Button();
+            cancelButton = new Button();
+            SuspendLayout();
             // 
             // locationComboBox
             // 
-            this.locationComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.locationComboBox.FormattingEnabled = true;
-            this.locationComboBox.Location = new System.Drawing.Point(12, 12);
-            this.locationComboBox.Name = "locationComboBox";
-            this.locationComboBox.Size = new System.Drawing.Size(268, 23);
-            this.locationComboBox.TabIndex = 0;
+            locationComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            locationComboBox.FormattingEnabled = true;
+            locationComboBox.Location = new Point(12, 12);
+            locationComboBox.Name = "locationComboBox";
+            locationComboBox.Size = new Size(268, 23);
+            locationComboBox.TabIndex = 0;
             // 
             // serialNumberComboBox
             // 
-            this.serialNumberComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.serialNumberComboBox.FormattingEnabled = true;
-            this.serialNumberComboBox.Location = new System.Drawing.Point(12, 41);
-            this.serialNumberComboBox.Name = "serialNumberComboBox";
-            this.serialNumberComboBox.Size = new System.Drawing.Size(268, 23);
-            this.serialNumberComboBox.TabIndex = 4;
+            serialNumberComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            serialNumberComboBox.FormattingEnabled = true;
+            serialNumberComboBox.Location = new Point(12, 41);
+            serialNumberComboBox.Name = "serialNumberComboBox";
+            serialNumberComboBox.Size = new Size(268, 23);
+            serialNumberComboBox.TabIndex = 4;
             // 
             // noteTextBox
             // 
-            this.noteTextBox.Location = new System.Drawing.Point(12, 70);
-            this.noteTextBox.Multiline = true;
-            this.noteTextBox.Name = "noteTextBox";
-            this.noteTextBox.Size = new System.Drawing.Size(268, 60);
-            this.noteTextBox.TabIndex = 1;
+            noteTextBox.Location = new Point(12, 70);
+            noteTextBox.Multiline = true;
+            noteTextBox.Name = "noteTextBox";
+            noteTextBox.Size = new Size(268, 60);
+            noteTextBox.TabIndex = 1;
             // 
             // okButton
             // 
-            this.okButton.Location = new System.Drawing.Point(124, 136);
-            this.okButton.Name = "okButton";
-            this.okButton.Size = new System.Drawing.Size(75, 23);
-            this.okButton.TabIndex = 2;
-            this.okButton.Text = "OK";
-            this.okButton.UseVisualStyleBackColor = true;
-            this.okButton.Click += new System.EventHandler(this.okButton_Click);
+            okButton.Location = new Point(124, 136);
+            okButton.Name = "okButton";
+            okButton.Size = new Size(75, 23);
+            okButton.TabIndex = 2;
+            okButton.Text = "OK";
+            okButton.UseVisualStyleBackColor = true;
+            okButton.Click += okButton_Click;
             // 
             // cancelButton
             // 
-            this.cancelButton.Location = new System.Drawing.Point(205, 136);
-            this.cancelButton.Name = "cancelButton";
-            this.cancelButton.Size = new System.Drawing.Size(75, 23);
-            this.cancelButton.TabIndex = 3;
-            this.cancelButton.Text = "Cancel";
-            this.cancelButton.UseVisualStyleBackColor = true;
-            this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
+            cancelButton.Location = new Point(205, 136);
+            cancelButton.Name = "cancelButton";
+            cancelButton.Size = new Size(75, 23);
+            cancelButton.TabIndex = 3;
+            cancelButton.Text = "Cancel";
+            cancelButton.UseVisualStyleBackColor = true;
+            cancelButton.Click += cancelButton_Click;
             // 
             // LocationAndNoteForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(292, 171);
-            this.Controls.Add(this.cancelButton);
-            this.Controls.Add(this.okButton);
-            this.Controls.Add(this.noteTextBox);
-            this.Controls.Add(this.serialNumberComboBox);
-            this.Controls.Add(this.locationComboBox);
-            this.Name = "LocationAndNoteForm";
-            this.Text = "Select Location, Serial Number, and Note";
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(293, 168);
+            Controls.Add(cancelButton);
+            Controls.Add(okButton);
+            Controls.Add(noteTextBox);
+            Controls.Add(serialNumberComboBox);
+            Controls.Add(locationComboBox);
+            Name = "LocationAndNoteForm";
+            Text = "Select Location, Serial Number, and Note";
+            ResumeLayout(false);
+            PerformLayout();
         }
     }
 }
