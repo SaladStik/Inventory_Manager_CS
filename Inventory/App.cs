@@ -42,12 +42,12 @@ namespace Inventory
                     Console.WriteLine("Enter Barcode: ");
                     barcode = Console.ReadLine();
 
-                    await DB_Integrator.Query(product_add, new string[] { model_number, type, quantity.ToString(), barcode });
+                   // await DB_Integrator.Query(product_add, new string[] { model_number, type, quantity.ToString(), barcode });
                     break;
 
 
                 case "2"://displays data entries
-                    Console.WriteLine(await DB_Integrator.Select(select_Product, null));
+                    Console.WriteLine(await DB_Integrator.SelectAsync(select_Product, null));
                     break;
 
 
@@ -62,18 +62,18 @@ namespace Inventory
                     {
                         quantity = (int)parsedQuantity2; // Safe to cast since uint is always positive
                     }
-                    await DB_Integrator.Query(product_update, new string[] { quantity.ToString(), barcode });
+                   // await DB_Integrator.Query(product_update, new string[] { quantity.ToString(), barcode });
                     break;
                 //adds history
                 case "4":
-                    await DB_Integrator.Query(insert_data_into_history_if_not_exists, new string[] { "1", "3", "4", "99test", DateTime.Now.ToString(), "test2" });
+                   // await DB_Integrator.Query(insert_data_into_history_if_not_exists, new string[] { "1", "3", "4", "99test", DateTime.Now.ToString(), "test2" });
                     break;
                 //updates note
                 case "5":
-                    await DB_Integrator.Query(update_history_note, new string[] { "updated Note", "99test", "1" });
+                  //  await DB_Integrator.Query(update_history_note, new string[] { "updated Note", "99test", "1" });
                     break;
                 case "6":
-                    await DB_Integrator.Query(update_history_location, new string[] { "2", "99test", "1"});
+                   // await DB_Integrator.Query(update_history_location, new string[] { "2", "99test", "1"});
                     break;
             }
 
