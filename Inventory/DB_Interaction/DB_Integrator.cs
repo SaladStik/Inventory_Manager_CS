@@ -1,101 +1,78 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using Npgsql;
+using System;
 using System.Configuration;
 using System.Data;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using Npgsql;
 
 namespace Inventory.DB_Interaction
 {
     public class DB_Integrator
     {
-
-        private NpgsqlConnection dataSource;
+        private readonly string _connectionString;
 
         public DB_Integrator()
         {
-            
-            dataSource = new NpgsqlConnection(GetConnectionString());
+            _connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
         }
 
-        static string GetConnectionString()
+        private async Task<NpgsqlConnection> GetOpenConnectionAsync()
         {
-            return ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+            var conn = new NpgsqlConnection(_connectionString);
+            await conn.OpenAsync();
+            return conn;
         }
 
-        public async Task Open()
+        public async Task QueryAsync(string sql, params string[] args)
         {
-            await dataSource.OpenAsync();
-        }
-        public async Task Close()
-        {
-            await dataSource.CloseAsync();
-        }
-
-        public async Task Query(string sql, string[] args)
-        {
-            await Open();
             try
             {
-                string formattedString = sql;
-                if (args != null) { formattedString = string.Format(sql, args); }
-                Console.WriteLine(formattedString);
-                using var command = new NpgsqlCommand(formattedString, dataSource);
-
+                await using var conn = await GetOpenConnectionAsync();
+                string formattedString = args != null && args.Length > 0 ? string.Format(sql, args) : sql;
+                using var command = new NpgsqlCommand(formattedString, conn);
                 await command.ExecuteNonQueryAsync();
             }
-            catch (Exception ex) { Console.WriteLine(ex); }
-            await Close();
-        }
-        public async Task<object?> Select(string sql, string[] args)
-        {
-            StringBuilder result = new StringBuilder();
-            await Open();
-            try
+            catch (Exception ex)
             {
-                string formattedString = sql;
-                if (args != null) { formattedString = string.Format(sql, args); }
-                
-                using var command = new NpgsqlCommand(formattedString, dataSource);
-                using var reader = await command.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                {
-                    for (int i = 0; i < reader.FieldCount; i++)
-                    {
-                        result.Append(reader.GetValue(i).ToString() + " "); // Append each column value followed by a space
-                    }
-                    result.AppendLine(); // New line for each row
-                }
+                Console.WriteLine($"Error executing query: {ex.Message}");
+                throw;
             }
-            catch (Exception ex) { Console.WriteLine(ex); }
-            await Close();
-            return result.ToString();
         }
 
-        public async Task<DataTable> GetDataTableAsync(string sql, string[] args)
+        public async Task<object?> SelectAsync(string sql, params string[] args)
         {
-            DataTable dataTable = new DataTable();
-            string formattedString = sql;
-            if (args != null) { formattedString = string.Format(sql, args); }
-            await Open();
             try
             {
-                using var command = new NpgsqlCommand(formattedString, dataSource);
+                await using var conn = await GetOpenConnectionAsync();
+                string formattedString = args != null && args.Length > 0 ? string.Format(sql, args) : sql;
+                using var command = new NpgsqlCommand(formattedString, conn);
+                return await command.ExecuteScalarAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error executing select: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<DataTable> GetDataTableAsync(string sql, params string[] args)
+        {
+            DataTable dataTable = new DataTable();
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                string formattedString = args != null && args.Length > 0 ? string.Format(sql, args) : sql;
+                using var command = new NpgsqlCommand(formattedString, conn);
                 using var adapter = new NpgsqlDataAdapter(command);
                 adapter.Fill(dataTable);
             }
-            catch (Exception ex) { Console.WriteLine(ex); }
-            await Close();
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting data table: {ex.Message}");
+                throw;
+            }
 
             return dataTable;
         }
-
-
-
-
     }
 }

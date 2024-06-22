@@ -7,23 +7,30 @@ namespace Inventory_Manager
     {
         public string SerialNumber { get; private set; }
 
-        public SerialNumberInputForm(int currentIndex, int totalCount)
+        public SerialNumberInputForm(int currentNumber, int totalNumber)
         {
             InitializeComponent();
-            promptLabel.Text = $"Enter Serial Number for item {currentIndex} of {totalCount}";
+            promptLabel.Text = $"Enter serial number {currentNumber} of {totalNumber}";
         }
 
         private void okButton_Click(object sender, EventArgs e)
         {
-            SerialNumber = serialNumberTextBox.Text.Trim();
-            DialogResult = DialogResult.OK;
-            Close();
+            ProcessSerialNumber();
         }
 
         private void cancelButton_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
             Close();
+        }
+
+        private void serialNumberTextBox_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                e.Handled = true; // Prevents the "ding" sound
+                ProcessSerialNumber();
+            }
         }
     }
 }

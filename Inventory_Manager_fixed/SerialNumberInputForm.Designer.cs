@@ -1,20 +1,24 @@
-﻿namespace Inventory_Manager
-{
-    partial class SerialNumberInputForm
-    {
-        private System.ComponentModel.IContainer components = null;
-        private System.Windows.Forms.Label promptLabel;
-        private System.Windows.Forms.TextBox serialNumberTextBox;
-        private System.Windows.Forms.Button okButton;
-        private System.Windows.Forms.Button cancelButton;
+﻿using System;
+using System.Windows.Forms;
 
-        protected override void Dispose(bool disposing)
+namespace Inventory_Manager
+{
+    public partial class SerialNumberInputForm : Form
+    {
+        public string EnteredSerialNumber { get; private set; }
+
+        
+
+        private void ProcessSerialNumber()
         {
-            if (disposing && (components != null))
+            EnteredSerialNumber = serialNumberTextBox.Text.Trim();
+            if (string.IsNullOrEmpty(EnteredSerialNumber))
             {
-                components.Dispose();
+                MessageBox.Show("Serial number cannot be empty. Please enter a valid serial number.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
-            base.Dispose(disposing);
+            DialogResult = DialogResult.OK;
+            Close();
         }
 
         private void InitializeComponent()
@@ -30,22 +34,23 @@
             this.promptLabel.AutoSize = true;
             this.promptLabel.Location = new System.Drawing.Point(12, 9);
             this.promptLabel.Name = "promptLabel";
-            this.promptLabel.Size = new System.Drawing.Size(38, 15);
+            this.promptLabel.Size = new System.Drawing.Size(190, 25);
             this.promptLabel.TabIndex = 0;
-            this.promptLabel.Text = "label1";
+            this.promptLabel.Text = "Enter serial number:";
             // 
             // serialNumberTextBox
             // 
-            this.serialNumberTextBox.Location = new System.Drawing.Point(12, 27);
+            this.serialNumberTextBox.Location = new System.Drawing.Point(12, 37);
             this.serialNumberTextBox.Name = "serialNumberTextBox";
-            this.serialNumberTextBox.Size = new System.Drawing.Size(260, 23);
+            this.serialNumberTextBox.Size = new System.Drawing.Size(360, 31);
             this.serialNumberTextBox.TabIndex = 1;
+            this.serialNumberTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.serialNumberTextBox_KeyPress);
             // 
             // okButton
             // 
-            this.okButton.Location = new System.Drawing.Point(116, 56);
+            this.okButton.Location = new System.Drawing.Point(216, 74);
             this.okButton.Name = "okButton";
-            this.okButton.Size = new System.Drawing.Size(75, 23);
+            this.okButton.Size = new System.Drawing.Size(75, 34);
             this.okButton.TabIndex = 2;
             this.okButton.Text = "OK";
             this.okButton.UseVisualStyleBackColor = true;
@@ -53,9 +58,9 @@
             // 
             // cancelButton
             // 
-            this.cancelButton.Location = new System.Drawing.Point(197, 56);
+            this.cancelButton.Location = new System.Drawing.Point(297, 74);
             this.cancelButton.Name = "cancelButton";
-            this.cancelButton.Size = new System.Drawing.Size(75, 23);
+            this.cancelButton.Size = new System.Drawing.Size(75, 34);
             this.cancelButton.TabIndex = 3;
             this.cancelButton.Text = "Cancel";
             this.cancelButton.UseVisualStyleBackColor = true;
@@ -63,17 +68,22 @@
             // 
             // SerialNumberInputForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 91);
+            this.ClientSize = new System.Drawing.Size(384, 120);
             this.Controls.Add(this.cancelButton);
             this.Controls.Add(this.okButton);
             this.Controls.Add(this.serialNumberTextBox);
             this.Controls.Add(this.promptLabel);
             this.Name = "SerialNumberInputForm";
-            this.Text = "Enter Serial Number";
+            this.Text = "Serial Number Input";
             this.ResumeLayout(false);
             this.PerformLayout();
         }
+
+        private System.Windows.Forms.Label promptLabel;
+        private System.Windows.Forms.TextBox serialNumberTextBox;
+        private System.Windows.Forms.Button okButton;
+        private System.Windows.Forms.Button cancelButton;
     }
 }
