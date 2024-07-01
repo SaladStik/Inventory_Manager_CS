@@ -1,14 +1,24 @@
-﻿using Inventory.DB_Interaction;
+﻿using Inventory;
+using Inventory.DB_Interaction;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using ZXing;
+using ZXing.Common;
+using ZXing.Rendering;
 
 namespace Inventory_Manager
 {
@@ -16,6 +26,10 @@ namespace Inventory_Manager
     {
         private DB_Integrator _dbIntegrator;
         private System.Windows.Forms.Timer _refreshTimer;
+        private static string _JSESSIONID = "";
+        private static string _AUTH = "";
+        private string _tempDirectory;
+        private Bitmap _barcodeBitmap;
 
         public Form1()
         {
@@ -27,20 +41,23 @@ namespace Inventory_Manager
             _refreshTimer.Interval = 10000; // 10 seconds
             _refreshTimer.Tick += RefreshTimer_Tick;
             _refreshTimer.Start();
+
+            _tempDirectory = Path.Combine(Path.GetTempPath(), "Inventory_BarcodeImages");
+            Directory.CreateDirectory(_tempDirectory);
+
+            // Clean up temporary directory on application exit
+            AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
         }
 
         public static string associate_product_supplier = "UPDATE product SET supplier_id = {0} WHERE id = {1};";
         public static string update_minimum_stock = "UPDATE product SET min_stock = {0} WHERE id = {1};";
-
-        public static string select_Product = "SELECT p.id, p.model_number, p.alias, p.type, p.quantity, p.barcode, p.require_serial_number, p.image_url, s.name AS supplier, p.supplier_link, p.min_stock FROM product p LEFT JOIN supplier s ON p.supplier_id = s.id ORDER BY p.id ASC";
-
+        public static string select_Product = "SELECT p.id, p.model_number, p.alias, p.type, p.quantity, p.barcode, p.require_serial_number, p.image_url, s.name AS supplier, p.supplier_link, p.min_stock, p.bin FROM product p LEFT JOIN supplier s ON p.supplier_id = s.id ORDER BY p.id ASC";
         public static string product_add = @"
             INSERT INTO product (
-                model_number, alias, type, quantity, barcode, require_serial_number, supplier_id, supplier_link, min_stock
+                model_number, alias, type, quantity, barcode, require_serial_number, supplier_id, supplier_link, min_stock, bin
             ) VALUES (
-                '{0}', '{1}', '{2}', {3}, '{4}', {5}, {6}, '{7}', {8}
+                '{0}', '{1}', '{2}', {3}, '{4}', {5}, {6}, '{7}', {8}, '{9}'
             ) RETURNING id;";
-
         public static string product_update = "UPDATE product SET quantity = {0} WHERE barcode = '{1}'";
         public static string select_Location = "SELECT id FROM location WHERE name = '{0}';";
         public static string update_history_location = "UPDATE history SET id_location = '{0}' WHERE serial_number = '{1}' AND id_product = {2}";
@@ -49,7 +66,7 @@ namespace Inventory_Manager
             SELECT {0}, {1}, '{2}', '{3}', '{4}'
             WHERE NOT EXISTS (SELECT * FROM history WHERE serial_number = '{2}')";
         public static string search_function = @"
-            SELECT p.id, p.model_number, p.alias, p.type, p.quantity, p.barcode, p.require_serial_number, p.image_url, s.name AS supplier, p.supplier_link, p.min_stock 
+            SELECT p.id, p.model_number, p.alias, p.type, p.quantity, p.barcode, p.require_serial_number, p.image_url, s.name AS supplier, p.supplier_link, p.min_stock, p.bin 
             FROM product p
             LEFT JOIN supplier s ON p.supplier_id = s.id
             WHERE CAST(p.id AS TEXT) ILIKE '%{0}%' 
@@ -72,9 +89,23 @@ namespace Inventory_Manager
         public static string insert_supplier = "INSERT INTO supplier(name) VALUES('{0}') RETURNING id;";
         public static string select_Supplier = "SELECT id, name FROM supplier ORDER BY name ASC;";
         public static string update_supplier_link = "UPDATE product SET supplier_link = '{0}' WHERE id = {1};";
+        public static string update_bin = "UPDATE product SET bin = '{0}' WHERE id = {1};";
 
         private async void Form1_Load(object sender, EventArgs e)
         {
+            // Unsubscribe from existing event handlers if they are already attached
+            Product_List.CellDoubleClick -= Product_List_CellDoubleClick;
+            Product_List.DataBindingComplete -= Product_List_DataBindingComplete;
+            ImageUploadButton.Click -= ImageUploadButton_Click;
+            SupplierAddButton.Click -= SupplierAddButton_Click;
+            SupplierLinkButton.Click -= SupplierLinkButton_Click;
+            AddMinimumStock.Click -= AddMinimumStock_Click;
+            MinimumStockTextBox.KeyPress -= MinimumStockTextBox_KeyPress;
+            MinimumStockTextBox.TextChanged -= MinimumStockTextBox_TextChanged;
+            SettingsButton.Click -= SettingsButton_Click;
+            BinSet.Click -= BinSet_Click;
+
+            // Subscribe to event handlers
             Product_List.CellDoubleClick += Product_List_CellDoubleClick;
             Product_List.DataBindingComplete += Product_List_DataBindingComplete;
             ImageUploadButton.Click += ImageUploadButton_Click;
@@ -84,6 +115,8 @@ namespace Inventory_Manager
             MinimumStockTextBox.KeyPress += MinimumStockTextBox_KeyPress; // Restrict to integers
             MinimumStockTextBox.TextChanged += MinimumStockTextBox_TextChanged; // Handle text changes
             SettingsButton.Click += SettingsButton_Click; // Add Settings Button Click handler
+            BinSet.Click += BinSet_Click; // Add Bin Set Button Click handler
+
             await LoadDataGridAsync();
             await LoadTypesAsync(); // Load types into ComboBox
             await LoadSuppliersAsync(); // Load suppliers into ComboBox
@@ -383,7 +416,6 @@ namespace Inventory_Manager
             catch { }
         }
 
-
         private async void increaseQuantityButton_Click(object sender, EventArgs e)
         {
             await UpdateProductQuantityAsync(true);
@@ -495,6 +527,7 @@ namespace Inventory_Manager
             string supplier = supplierSelectionBox.Text.Trim();
             string supplierLink = supplierLinkBox.Text.Trim();
             int? minStock = null;
+            string bin = BinTextBox.Text.Trim();
 
             if (string.IsNullOrEmpty(modelNumber) || string.IsNullOrEmpty(type) || !int.TryParse(quantityTextBox.Text.Trim(), out quantity) || string.IsNullOrEmpty(barcode))
             {
@@ -532,7 +565,7 @@ namespace Inventory_Manager
                 string supplierIdValueString = supplierId.HasValue ? supplierId.Value.ToString() : "NULL";
                 string minStockValueString = minStock.HasValue ? minStock.Value.ToString() : "NULL";
 
-                string productAdd = string.Format(product_add, modelNumber, alias, type, quantity, barcode, requireSerialNumber, supplierIdValueString, supplierLink, minStockValueString);
+                string productAdd = string.Format(product_add, modelNumber, alias, type, quantity, barcode, requireSerialNumber, supplierIdValueString, supplierLink, minStockValueString, bin);
                 object newProductIdObj = await _dbIntegrator.SelectAsync(productAdd, null);
                 int newProductId = Convert.ToInt32(newProductIdObj);
 
@@ -547,7 +580,7 @@ namespace Inventory_Manager
                     }
                     foreach (string serialNumber in serialNumbers)
                     {
-                        string insertHistory = string.Format(insert_data_into_history_if_not_exists, newProductId, 1, serialNumber, DateTime.Now.ToString("yyyy-MM-dd"), "");//default prudct creation 
+                        string insertHistory = string.Format(insert_data_into_history_if_not_exists, newProductId, 1, serialNumber, DateTime.Now.ToString("yyyy-MM-dd"), "");//default product creation 
                         await _dbIntegrator.QueryAsync(insertHistory, null);
                     }
                 }
@@ -643,6 +676,29 @@ namespace Inventory_Manager
             }
         }
 
+        private async void BinSet_Click(object sender, EventArgs e)
+        {
+            if (Product_List.SelectedRows.Count > 0)
+            {
+                int productId = Convert.ToInt32(Product_List.SelectedRows[0].Cells["id"].Value);
+                string bin = BinTextBox.Text.Trim();
+
+                if (string.IsNullOrEmpty(bin))
+                {
+                    MessageBox.Show("Please enter a valid bin value.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                string query = string.Format(update_bin, bin, productId);
+                await _dbIntegrator.QueryAsync(query, null);
+                MessageBox.Show("Bin value updated successfully.");
+                await LoadDataGridAsync(productId); // Refresh the DataGridView and reselect the row
+            }
+            else
+            {
+                MessageBox.Show("Please select a product.");
+            }
+        }
 
         private async Task<List<Tuple<int, string>>> GetLocationsAsync()
         {
@@ -711,6 +767,7 @@ namespace Inventory_Manager
             supplierSelectionBox.SelectedIndex = -1;
             supplierLinkBox.Clear();
             MinimumStockTextBox.Clear();
+            BinTextBox.Clear();
         }
 
         private async void DBSweepButton_Click(object sender, EventArgs e)
@@ -756,7 +813,6 @@ namespace Inventory_Manager
             }
         }
 
-
         private async void ImageUploadButton_Click(object sender, EventArgs e)
         {
             if (Product_List.SelectedRows.Count > 0)
@@ -766,7 +822,9 @@ namespace Inventory_Manager
                 using (OpenFileDialog openFileDialog = new OpenFileDialog())
                 {
                     openFileDialog.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.gif;*.bmp";
-                    if (openFileDialog.ShowDialog() == DialogResult.OK)
+                    DialogResult result = openFileDialog.ShowDialog();
+
+                    if (result == DialogResult.OK)
                     {
                         try
                         {
@@ -799,6 +857,320 @@ namespace Inventory_Manager
         private void SettingsButton_Click_1(object sender, EventArgs e)
         {
 
+        }
+
+        private async void QTAuth_Click(object sender, EventArgs e)
+        {
+            Button button = (Button)sender;
+            button.Enabled = false;
+
+            string username = QTUsername.Text;
+            string password = QTPassword.Text;
+            string subdomain = "AIS";
+
+            //md5 the password
+            StringBuilder sb = new StringBuilder();
+            using (MD5 md5 = MD5.Create())
+            {
+                byte[] hashValue = md5.ComputeHash(Encoding.UTF8.GetBytes(password));
+                foreach (byte b in hashValue)
+                {
+                    sb.Append($"{b:X2}");
+                }
+                password = sb.ToString();
+                password = password.ToLower();
+            }
+
+            //returns true if valid log in and false for bad
+            bool loggedIn = await ValidateLogin(username, password, subdomain);
+        }
+
+        public async Task<bool> ValidateLogin(string username, string password, string subdomain)
+        {
+            string api = "app.quicktech.com";
+            string apiUrl = "https://" + api + "/auth/mobile";
+            using var httpClient = new HttpClient();
+            try
+            {
+                var payload = new
+                {
+                    username,
+                    password,
+                    companyDomain = subdomain
+                };
+                string json = JsonConvert.SerializeObject(payload);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await httpClient.PostAsync(apiUrl, content);
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseJson = await response.Content.ReadAsStringAsync();
+                    var responseObject = JsonConvert.DeserializeObject<LoginResponse>(responseJson);
+
+                    if (responseObject != null)
+                    {
+                        string authValue = responseObject.auth;
+                        if (authValue == null)
+                        {
+                            //no 2fa
+                            //keep this token
+                            _JSESSIONID = responseObject.JSESSIONID;
+                        }
+                        else
+                        {
+                            //with 2fa
+                            //user it for 2fa api
+                            QT2FA.Visible = true;
+                            QT2FAAUTH.Visible = true;
+                            _JSESSIONID = responseObject.JSESSIONID;
+                            _AUTH = responseObject.auth;
+                        }
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private class LoginResponse
+        {
+            public string JSESSIONID { get; set; }
+            public string auth { get; set; }
+        }
+
+        private async void QT2FAAUTH_Click(object sender, EventArgs e)
+        {
+            string verifCode = QT2FA.Text;
+            if (verifCode == null || verifCode == "" || verifCode.Length != 6)
+            {
+                //entry is empty
+                return;
+            }
+            string apiUrl = "https://" + "app.quicktech.com" + "/code/mobile";
+            var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("Cookie", "JSESSIONID=" + _JSESSIONID);
+            int verifCodeInt = Convert.ToInt32(verifCode);
+            bool isGoogle = false;
+            if (_AUTH == "google")
+            {
+                isGoogle = true;
+            }
+            else { }
+            var payload2fa = new
+            {
+                code = verifCodeInt,
+                google = isGoogle
+            };
+            string json = JsonConvert.SerializeObject(payload2fa);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await httpClient.PostAsync(apiUrl, content);
+            try
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    //success
+                    QTPULLLOC.Visible = true;
+                }
+                else
+                {
+                    //no worky
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
+
+        private async void QTPULLLOC_Click(object sender, EventArgs e)
+        {
+            //pull location
+            List<CompanyInformation> clients = await GetClients();
+            clients = clients.OrderBy(x => x.name).ToList();
+            foreach (var client in clients)
+            {
+                string query = string.Format(insert_location, client.name);
+
+                try
+                {
+                    await _dbIntegrator.QueryAsync(query, null);
+                    //MessageBox.Show("Location added successfully.");
+                    locationNameTextBox.Clear();
+                }
+                catch (Exception ex)
+                {
+                    //MessageBox.Show($"An error occurred: {ex.Message}");
+                    Console.WriteLine(ex);
+                }
+            }
+        }
+
+        public async Task<List<CompanyInformation>> GetClients()
+        {
+            HttpClient _httpClient = new();
+            string endpoint = "https://app.quicktech.com/company/clients";
+            try
+            {
+                _httpClient.DefaultRequestHeaders.Add("Cookie", "JSESSIONID=" + _JSESSIONID);
+                var payloadData = new { needCompanyInfo = true, isArchived = false };
+                string payloadJson = JsonConvert.SerializeObject(payloadData);
+                HttpContent content = new StringContent(payloadJson, Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = await _httpClient.PostAsync(endpoint, content);
+                Console.WriteLine(response);
+                if (response.StatusCode == HttpStatusCode.Locked)
+                {
+                    return await GetClients();
+                }
+                if (response.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    return null;
+                }
+
+                string json = await response.Content.ReadAsStringAsync();
+                List<CompanyInformation> clients = JsonConvert.DeserializeObject<List<CompanyInformation>>(json);
+                return clients;
+            }
+            catch (JsonSerializationException)
+            {
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching ticket: {ex.Message}");
+                return null;
+            }
+            finally
+            {
+                _httpClient.Dispose();
+            }
+        }
+
+        private void OnProcessExit(object sender, EventArgs e)
+        {
+            if (Directory.Exists(_tempDirectory))
+            {
+                Directory.Delete(_tempDirectory, true);
+            }
+        }
+
+        private void BarcodeGen_Click(object sender, EventArgs e)
+        {
+            if (Product_List.SelectedRows.Count > 0)
+            {
+                string barcode = Product_List.SelectedRows[0].Cells["barcode"].Value?.ToString();
+                if (!string.IsNullOrEmpty(barcode))
+                {
+                    GenerateBarcode(barcode);
+                }
+                else
+                {
+                    MessageBox.Show("The selected product does not have a barcode.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select a product.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void GenerateBarcode(string barcodeText)
+        {
+            var barcodeWriter = new BarcodeWriter<Bitmap>
+            {
+                Format = BarcodeFormat.CODE_128,
+                Options = new EncodingOptions
+                {
+                    Width = 300,
+                    Height = 100,
+                    Margin = 10
+                },
+                Renderer = new CustomBitmapRenderer() // Use the custom renderer
+            };
+
+            _barcodeBitmap = barcodeWriter.Write(barcodeText);
+
+            string filePath = Path.Combine(_tempDirectory, $"{barcodeText}.png");
+            _barcodeBitmap.Save(filePath, System.Drawing.Imaging.ImageFormat.Png);
+
+            // Show print dialog
+            PrintDocument printDoc = new PrintDocument();
+            printDoc.PrintPage += new PrintPageEventHandler(PrintDoc_PrintPage);
+            PrintDialog printDialog = new PrintDialog();
+            printDialog.Document = printDoc;
+            if (printDialog.ShowDialog() == DialogResult.OK)
+            {
+                printDoc.Print();
+            }
+        }
+
+        private void PrintDoc_PrintPage(object sender, PrintPageEventArgs e)
+        {
+            if (_barcodeBitmap != null)
+            {
+                e.Graphics.DrawImage(_barcodeBitmap, new Point(0, 0));
+            }
+        }
+    }
+
+    public class CompanyInformation
+    {
+        public string name { get; set; }
+    }
+
+    public class CustomBitmapRenderer : IBarcodeRenderer<Bitmap>
+    {
+        public Bitmap Render(BitMatrix matrix, BarcodeFormat format, string content, EncodingOptions options)
+        {
+            int width = matrix.Width;
+            int height = matrix.Height;
+            int margin = options?.Margin ?? 10;
+            int fontSize = 14;
+
+            Font font = new Font("Arial", fontSize);
+            SizeF textSize;
+
+            using (var tempBitmap = new Bitmap(1, 1))
+            using (var graphics = Graphics.FromImage(tempBitmap))
+            {
+                textSize = graphics.MeasureString(content, font);
+            }
+
+            int totalHeight = height + margin + (int)textSize.Height;
+            var bitmap = new Bitmap(width, totalHeight);
+
+            using (var graphics = Graphics.FromImage(bitmap))
+            {
+                graphics.Clear(Color.White);
+
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        var color = matrix[x, y] ? Color.Black : Color.White;
+                        bitmap.SetPixel(x, y, color);
+                    }
+                }
+
+                graphics.DrawString(content, font, Brushes.Black, new PointF((width - textSize.Width) / 2, height + margin));
+            }
+
+            return bitmap;
+        }
+
+        public Bitmap Render(BitMatrix matrix, BarcodeFormat format, string content)
+        {
+            return Render(matrix, format, content, null);
         }
     }
 }

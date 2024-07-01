@@ -12,8 +12,6 @@
         private System.Windows.Forms.TextBox quantityTextBox;
         private System.Windows.Forms.TextBox barcodeTextBox;
         private System.Windows.Forms.CheckBox requireSerialNumberCheckBox;
-        private System.Windows.Forms.Button quantityUp;
-        private System.Windows.Forms.Button quantityDown;
         private System.Windows.Forms.TabControl searchTabs;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage3;
@@ -21,8 +19,6 @@
         private System.Windows.Forms.TextBox locationNameTextBox;
         private System.Windows.Forms.Button addLocationButton;
         private System.Windows.Forms.Label SearchText;
-        private System.Windows.Forms.TextBox QuantityChangeAmtBox;
-        private System.Windows.Forms.Label QuantityText;
 
         protected override void Dispose(bool disposing)
         {
@@ -45,18 +41,19 @@
             quantityTextBox = new TextBox();
             barcodeTextBox = new TextBox();
             requireSerialNumberCheckBox = new CheckBox();
-            quantityUp = new Button();
-            quantityDown = new Button();
             searchTabs = new TabControl();
             tabPage1 = new TabPage();
-            QuantityChangeAmtBox = new TextBox();
-            QuantityText = new Label();
+            BarcodeGen = new Button();
             SearchText = new Label();
             ProductUpdateTab = new TabPage();
+            QuantityChangeAmtBox = new TextBox();
             AddMinimumStock = new Button();
+            quantityDown = new Button();
             MinimumStockTextBox = new TextBox();
+            quantityUp = new Button();
             MinimumStockLabel = new Label();
             SupplierLinkText = new Label();
+            QuantityText = new Label();
             SupplierLinkButton = new Button();
             supplierLinkBox = new TextBox();
             SupplierAddButton = new Button();
@@ -69,8 +66,17 @@
             locationNameTextBox = new TextBox();
             addLocationButton = new Button();
             AdminTab = new TabPage();
+            QTPULLLOC = new Button();
+            QT2FAAUTH = new Button();
+            QT2FA = new TextBox();
+            QTAuth = new Button();
+            QTPassword = new TextBox();
+            QTUsername = new TextBox();
             DB_SWEEP = new Button();
             SettingsButton = new Button();
+            BinTextBox = new TextBox();
+            label1 = new Label();
+            BinSet = new Button();
             ((System.ComponentModel.ISupportInitialize)Product_List).BeginInit();
             searchTabs.SuspendLayout();
             tabPage1.SuspendLayout();
@@ -85,32 +91,35 @@
             Product_List.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             Product_List.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             Product_List.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            Product_List.Location = new Point(10, 119);
-            Product_List.Margin = new Padding(4, 3, 4, 3);
+            Product_List.Location = new Point(14, 205);
+            Product_List.Margin = new Padding(6, 5, 6, 5);
             Product_List.MultiSelect = false;
             Product_List.Name = "Product_List";
             Product_List.ReadOnly = true;
             Product_List.RowHeadersWidth = 62;
             Product_List.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            Product_List.Size = new Size(948, 470);
+            Product_List.Size = new Size(1354, 777);
             Product_List.TabIndex = 0;
             // 
             // searchTextBox
             // 
-            searchTextBox.Location = new Point(8, 23);
-            searchTextBox.Margin = new Padding(4, 3, 4, 3);
+            searchTextBox.Location = new Point(11, 38);
+            searchTextBox.Margin = new Padding(6, 5, 6, 5);
             searchTextBox.Name = "searchTextBox";
             searchTextBox.PlaceholderText = "Search";
-            searchTextBox.Size = new Size(233, 23);
+            searchTextBox.Size = new Size(331, 31);
             searchTextBox.TabIndex = 1;
             // 
             // searchButton
             // 
             searchButton.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            searchButton.Location = new Point(249, 18);
-            searchButton.Margin = new Padding(4, 3, 4, 3);
+            searchButton.AutoSize = true;
+            searchButton.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            searchButton.Location = new Point(356, 30);
+            searchButton.Margin = new Padding(6, 5, 6, 5);
             searchButton.Name = "searchButton";
-            searchButton.Size = new Size(88, 28);
+            searchButton.Padding = new Padding(4, 5, 4, 5);
+            searchButton.Size = new Size(82, 45);
             searchButton.TabIndex = 2;
             searchButton.Text = "Search";
             searchButton.UseVisualStyleBackColor = true;
@@ -118,9 +127,10 @@
             // 
             // addButton
             // 
-            addButton.Location = new Point(162, 32);
+            addButton.Location = new Point(231, 53);
+            addButton.Margin = new Padding(4, 5, 4, 5);
             addButton.Name = "addButton";
-            addButton.Size = new Size(88, 27);
+            addButton.Size = new Size(126, 45);
             addButton.TabIndex = 8;
             addButton.Text = "Add Product";
             addButton.UseVisualStyleBackColor = true;
@@ -128,68 +138,49 @@
             // 
             // modelNumberTextBox
             // 
-            modelNumberTextBox.Location = new Point(6, 6);
+            modelNumberTextBox.Location = new Point(9, 10);
+            modelNumberTextBox.Margin = new Padding(4, 5, 4, 5);
             modelNumberTextBox.Name = "modelNumberTextBox";
             modelNumberTextBox.PlaceholderText = "Model Number";
-            modelNumberTextBox.Size = new Size(150, 23);
+            modelNumberTextBox.Size = new Size(213, 31);
             modelNumberTextBox.TabIndex = 3;
             // 
             // typeComboBox
             // 
             typeComboBox.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             typeComboBox.AutoCompleteSource = AutoCompleteSource.ListItems;
-            typeComboBox.Location = new Point(162, 6);
+            typeComboBox.Location = new Point(231, 10);
+            typeComboBox.Margin = new Padding(4, 5, 4, 5);
             typeComboBox.Name = "typeComboBox";
-            typeComboBox.Size = new Size(150, 23);
+            typeComboBox.Size = new Size(213, 33);
             typeComboBox.TabIndex = 4;
             // 
             // quantityTextBox
             // 
-            quantityTextBox.Location = new Point(319, 6);
+            quantityTextBox.Location = new Point(456, 10);
+            quantityTextBox.Margin = new Padding(4, 5, 4, 5);
             quantityTextBox.Name = "quantityTextBox";
             quantityTextBox.PlaceholderText = "Quantity";
-            quantityTextBox.Size = new Size(100, 23);
+            quantityTextBox.Size = new Size(141, 31);
             quantityTextBox.TabIndex = 5;
             // 
             // barcodeTextBox
             // 
-            barcodeTextBox.Location = new Point(425, 6);
+            barcodeTextBox.Location = new Point(607, 10);
+            barcodeTextBox.Margin = new Padding(4, 5, 4, 5);
             barcodeTextBox.Name = "barcodeTextBox";
             barcodeTextBox.PlaceholderText = "Barcode";
-            barcodeTextBox.Size = new Size(150, 23);
+            barcodeTextBox.Size = new Size(213, 31);
             barcodeTextBox.TabIndex = 6;
             // 
             // requireSerialNumberCheckBox
             // 
-            requireSerialNumberCheckBox.Location = new Point(6, 32);
+            requireSerialNumberCheckBox.Location = new Point(9, 53);
+            requireSerialNumberCheckBox.Margin = new Padding(4, 5, 4, 5);
             requireSerialNumberCheckBox.Name = "requireSerialNumberCheckBox";
-            requireSerialNumberCheckBox.Size = new Size(150, 23);
+            requireSerialNumberCheckBox.Size = new Size(214, 38);
             requireSerialNumberCheckBox.TabIndex = 7;
             requireSerialNumberCheckBox.Text = "Require Serial Number";
-            // 
-            // quantityUp
-            // 
-            quantityUp.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            quantityUp.BackColor = Color.Lime;
-            quantityUp.Location = new Point(412, 20);
-            quantityUp.Name = "quantityUp";
-            quantityUp.Size = new Size(23, 26);
-            quantityUp.TabIndex = 9;
-            quantityUp.Text = "+";
-            quantityUp.UseVisualStyleBackColor = false;
-            quantityUp.Click += increaseQuantityButton_Click;
-            // 
-            // quantityDown
-            // 
-            quantityDown.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            quantityDown.BackColor = Color.Crimson;
-            quantityDown.Location = new Point(441, 20);
-            quantityDown.Name = "quantityDown";
-            quantityDown.Size = new Size(23, 26);
-            quantityDown.TabIndex = 10;
-            quantityDown.Text = "-";
-            quantityDown.UseVisualStyleBackColor = false;
-            quantityDown.Click += decreaseQuantityButton_Click;
             // 
             // searchTabs
             // 
@@ -198,108 +189,143 @@
             searchTabs.Controls.Add(tabPage3);
             searchTabs.Controls.Add(tabPage2);
             searchTabs.Controls.Add(AdminTab);
-            searchTabs.Location = new Point(10, 8);
+            searchTabs.Location = new Point(14, 13);
+            searchTabs.Margin = new Padding(4, 5, 4, 5);
             searchTabs.Name = "searchTabs";
             searchTabs.SelectedIndex = 0;
-            searchTabs.Size = new Size(891, 109);
+            searchTabs.Size = new Size(1273, 182);
             searchTabs.TabIndex = 11;
             // 
             // tabPage1
             // 
             tabPage1.BackColor = Color.Transparent;
-            tabPage1.Controls.Add(QuantityChangeAmtBox);
-            tabPage1.Controls.Add(QuantityText);
+            tabPage1.Controls.Add(BarcodeGen);
             tabPage1.Controls.Add(SearchText);
             tabPage1.Controls.Add(searchTextBox);
             tabPage1.Controls.Add(searchButton);
-            tabPage1.Controls.Add(quantityDown);
-            tabPage1.Controls.Add(quantityUp);
-            tabPage1.Location = new Point(4, 24);
+            tabPage1.Location = new Point(4, 34);
+            tabPage1.Margin = new Padding(4, 5, 4, 5);
             tabPage1.Name = "tabPage1";
-            tabPage1.Padding = new Padding(3);
-            tabPage1.Size = new Size(883, 81);
+            tabPage1.Padding = new Padding(4, 5, 4, 5);
+            tabPage1.Size = new Size(1265, 144);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "General";
             // 
-            // QuantityChangeAmtBox
+            // BarcodeGen
             // 
-            QuantityChangeAmtBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            QuantityChangeAmtBox.Location = new Point(351, 23);
-            QuantityChangeAmtBox.Margin = new Padding(2);
-            QuantityChangeAmtBox.MaxLength = 4;
-            QuantityChangeAmtBox.Name = "QuantityChangeAmtBox";
-            QuantityChangeAmtBox.PlaceholderText = "#";
-            QuantityChangeAmtBox.Size = new Size(57, 23);
-            QuantityChangeAmtBox.TabIndex = 13;
-            // 
-            // QuantityText
-            // 
-            QuantityText.AutoSize = true;
-            QuantityText.Location = new Point(351, 5);
-            QuantityText.Margin = new Padding(2, 0, 2, 0);
-            QuantityText.Name = "QuantityText";
-            QuantityText.Size = new Size(53, 15);
-            QuantityText.TabIndex = 12;
-            QuantityText.Text = "Quantity";
+            BarcodeGen.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            BarcodeGen.AutoSize = true;
+            BarcodeGen.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            BarcodeGen.Location = new Point(1091, 8);
+            BarcodeGen.Name = "BarcodeGen";
+            BarcodeGen.Padding = new Padding(3);
+            BarcodeGen.Size = new Size(167, 41);
+            BarcodeGen.TabIndex = 12;
+            BarcodeGen.Text = "Generate Barcode";
+            BarcodeGen.UseVisualStyleBackColor = true;
+            BarcodeGen.Click += BarcodeGen_Click;
             // 
             // SearchText
             // 
             SearchText.AutoSize = true;
-            SearchText.Location = new Point(8, 5);
-            SearchText.Margin = new Padding(2, 0, 2, 0);
+            SearchText.Location = new Point(11, 8);
             SearchText.Name = "SearchText";
-            SearchText.Size = new Size(42, 15);
+            SearchText.Size = new Size(64, 25);
             SearchText.TabIndex = 11;
             SearchText.Text = "Search";
             // 
             // ProductUpdateTab
             // 
+            ProductUpdateTab.Controls.Add(BinSet);
+            ProductUpdateTab.Controls.Add(label1);
+            ProductUpdateTab.Controls.Add(BinTextBox);
+            ProductUpdateTab.Controls.Add(QuantityChangeAmtBox);
             ProductUpdateTab.Controls.Add(AddMinimumStock);
+            ProductUpdateTab.Controls.Add(quantityDown);
             ProductUpdateTab.Controls.Add(MinimumStockTextBox);
+            ProductUpdateTab.Controls.Add(quantityUp);
             ProductUpdateTab.Controls.Add(MinimumStockLabel);
             ProductUpdateTab.Controls.Add(SupplierLinkText);
+            ProductUpdateTab.Controls.Add(QuantityText);
             ProductUpdateTab.Controls.Add(SupplierLinkButton);
             ProductUpdateTab.Controls.Add(supplierLinkBox);
             ProductUpdateTab.Controls.Add(SupplierAddButton);
             ProductUpdateTab.Controls.Add(SupplierInputText);
             ProductUpdateTab.Controls.Add(supplierSelectionBox);
             ProductUpdateTab.Controls.Add(ImageUploadButton);
-            ProductUpdateTab.Location = new Point(4, 24);
-            ProductUpdateTab.Margin = new Padding(2);
+            ProductUpdateTab.Location = new Point(4, 34);
             ProductUpdateTab.Name = "ProductUpdateTab";
-            ProductUpdateTab.Padding = new Padding(2);
-            ProductUpdateTab.Size = new Size(883, 81);
+            ProductUpdateTab.Padding = new Padding(3);
+            ProductUpdateTab.Size = new Size(1265, 144);
             ProductUpdateTab.TabIndex = 4;
             ProductUpdateTab.Text = "Product Updates";
             ProductUpdateTab.UseVisualStyleBackColor = true;
             // 
+            // QuantityChangeAmtBox
+            // 
+            QuantityChangeAmtBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            QuantityChangeAmtBox.Location = new Point(490, 35);
+            QuantityChangeAmtBox.MaxLength = 4;
+            QuantityChangeAmtBox.Name = "QuantityChangeAmtBox";
+            QuantityChangeAmtBox.PlaceholderText = "#";
+            QuantityChangeAmtBox.Size = new Size(80, 31);
+            QuantityChangeAmtBox.TabIndex = 13;
+            // 
             // AddMinimumStock
             // 
-            AddMinimumStock.Location = new Point(751, 27);
-            AddMinimumStock.Margin = new Padding(2);
+            AddMinimumStock.Location = new Point(1073, 45);
             AddMinimumStock.Name = "AddMinimumStock";
-            AddMinimumStock.Size = new Size(130, 25);
+            AddMinimumStock.Size = new Size(186, 42);
             AddMinimumStock.TabIndex = 20;
             AddMinimumStock.Text = "Add Minimum Stock";
             AddMinimumStock.UseVisualStyleBackColor = true;
             AddMinimumStock.Click += AddMinimumStock_Click;
             // 
+            // quantityDown
+            // 
+            quantityDown.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            quantityDown.AutoSize = true;
+            quantityDown.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            quantityDown.BackColor = Color.Crimson;
+            quantityDown.Location = new Point(619, 28);
+            quantityDown.Margin = new Padding(4, 5, 4, 5);
+            quantityDown.Name = "quantityDown";
+            quantityDown.Padding = new Padding(3);
+            quantityDown.Size = new Size(35, 41);
+            quantityDown.TabIndex = 10;
+            quantityDown.Text = "-";
+            quantityDown.UseVisualStyleBackColor = false;
+            quantityDown.Click += decreaseQuantityButton_Click;
+            // 
             // MinimumStockTextBox
             // 
-            MinimumStockTextBox.Location = new Point(642, 29);
-            MinimumStockTextBox.Margin = new Padding(2);
+            MinimumStockTextBox.Location = new Point(917, 48);
             MinimumStockTextBox.Name = "MinimumStockTextBox";
             MinimumStockTextBox.PlaceholderText = "#";
-            MinimumStockTextBox.Size = new Size(106, 23);
+            MinimumStockTextBox.Size = new Size(150, 31);
             MinimumStockTextBox.TabIndex = 19;
+            // 
+            // quantityUp
+            // 
+            quantityUp.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            quantityUp.AutoSize = true;
+            quantityUp.BackColor = Color.Lime;
+            quantityUp.Location = new Point(577, 28);
+            quantityUp.Margin = new Padding(4, 5, 4, 5);
+            quantityUp.Name = "quantityUp";
+            quantityUp.Padding = new Padding(3);
+            quantityUp.Size = new Size(40, 41);
+            quantityUp.TabIndex = 9;
+            quantityUp.Text = "+";
+            quantityUp.UseVisualStyleBackColor = false;
+            quantityUp.Click += increaseQuantityButton_Click;
             // 
             // MinimumStockLabel
             // 
             MinimumStockLabel.AutoSize = true;
-            MinimumStockLabel.Location = new Point(642, 8);
-            MinimumStockLabel.Margin = new Padding(2, 0, 2, 0);
+            MinimumStockLabel.Location = new Point(917, 13);
             MinimumStockLabel.Name = "MinimumStockLabel";
-            MinimumStockLabel.Size = new Size(92, 15);
+            MinimumStockLabel.Size = new Size(136, 25);
             MinimumStockLabel.TabIndex = 18;
             MinimumStockLabel.Text = "Minimum Stock";
             MinimumStockLabel.TextAlign = ContentAlignment.MiddleCenter;
@@ -307,19 +333,26 @@
             // SupplierLinkText
             // 
             SupplierLinkText.AutoSize = true;
-            SupplierLinkText.Location = new Point(256, 35);
-            SupplierLinkText.Margin = new Padding(2, 0, 2, 0);
+            SupplierLinkText.Location = new Point(366, 58);
             SupplierLinkText.Name = "SupplierLinkText";
-            SupplierLinkText.Size = new Size(75, 15);
+            SupplierLinkText.Size = new Size(113, 25);
             SupplierLinkText.TabIndex = 17;
             SupplierLinkText.Text = "Supplier Link";
             // 
+            // QuantityText
+            // 
+            QuantityText.AutoSize = true;
+            QuantityText.Location = new Point(490, 7);
+            QuantityText.Name = "QuantityText";
+            QuantityText.Size = new Size(80, 25);
+            QuantityText.TabIndex = 12;
+            QuantityText.Text = "Quantity";
+            // 
             // SupplierLinkButton
             // 
-            SupplierLinkButton.Location = new Point(751, 51);
-            SupplierLinkButton.Margin = new Padding(2);
+            SupplierLinkButton.Location = new Point(1073, 85);
             SupplierLinkButton.Name = "SupplierLinkButton";
-            SupplierLinkButton.Size = new Size(130, 25);
+            SupplierLinkButton.Size = new Size(186, 42);
             SupplierLinkButton.TabIndex = 16;
             SupplierLinkButton.Text = "Insert Supplier Link";
             SupplierLinkButton.UseVisualStyleBackColor = true;
@@ -327,19 +360,17 @@
             // 
             // supplierLinkBox
             // 
-            supplierLinkBox.Location = new Point(256, 53);
-            supplierLinkBox.Margin = new Padding(2);
+            supplierLinkBox.Location = new Point(366, 88);
             supplierLinkBox.Name = "supplierLinkBox";
             supplierLinkBox.PlaceholderText = "Supplier Link";
-            supplierLinkBox.Size = new Size(493, 23);
+            supplierLinkBox.Size = new Size(703, 31);
             supplierLinkBox.TabIndex = 15;
             // 
             // SupplierAddButton
             // 
-            SupplierAddButton.Location = new Point(160, 49);
-            SupplierAddButton.Margin = new Padding(2);
+            SupplierAddButton.Location = new Point(229, 82);
             SupplierAddButton.Name = "SupplierAddButton";
-            SupplierAddButton.Size = new Size(92, 30);
+            SupplierAddButton.Size = new Size(131, 50);
             SupplierAddButton.TabIndex = 14;
             SupplierAddButton.Text = "Add Supplier";
             SupplierAddButton.UseVisualStyleBackColor = true;
@@ -348,10 +379,9 @@
             // SupplierInputText
             // 
             SupplierInputText.AutoSize = true;
-            SupplierInputText.Location = new Point(5, 35);
-            SupplierInputText.Margin = new Padding(2, 0, 2, 0);
+            SupplierInputText.Location = new Point(7, 58);
             SupplierInputText.Name = "SupplierInputText";
-            SupplierInputText.Size = new Size(95, 15);
+            SupplierInputText.Size = new Size(145, 25);
             SupplierInputText.TabIndex = 13;
             SupplierInputText.Text = "Select A Supplier";
             // 
@@ -359,18 +389,18 @@
             // 
             supplierSelectionBox.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             supplierSelectionBox.AutoCompleteSource = AutoCompleteSource.ListItems;
-            supplierSelectionBox.Location = new Point(5, 53);
+            supplierSelectionBox.Location = new Point(7, 88);
+            supplierSelectionBox.Margin = new Padding(4, 5, 4, 5);
             supplierSelectionBox.Name = "supplierSelectionBox";
-            supplierSelectionBox.Size = new Size(150, 23);
+            supplierSelectionBox.Size = new Size(213, 33);
             supplierSelectionBox.TabIndex = 12;
             // 
             // ImageUploadButton
             // 
             ImageUploadButton.BackColor = Color.DarkGray;
-            ImageUploadButton.Location = new Point(4, 4);
-            ImageUploadButton.Margin = new Padding(2);
+            ImageUploadButton.Location = new Point(6, 7);
             ImageUploadButton.Name = "ImageUploadButton";
-            ImageUploadButton.Size = new Size(113, 29);
+            ImageUploadButton.Size = new Size(161, 48);
             ImageUploadButton.TabIndex = 10;
             ImageUploadButton.Text = "Upload Image";
             ImageUploadButton.UseVisualStyleBackColor = false;
@@ -385,10 +415,11 @@
             tabPage3.Controls.Add(barcodeTextBox);
             tabPage3.Controls.Add(addButton);
             tabPage3.Controls.Add(requireSerialNumberCheckBox);
-            tabPage3.Location = new Point(4, 24);
+            tabPage3.Location = new Point(4, 34);
+            tabPage3.Margin = new Padding(4, 5, 4, 5);
             tabPage3.Name = "tabPage3";
-            tabPage3.Padding = new Padding(3);
-            tabPage3.Size = new Size(883, 81);
+            tabPage3.Padding = new Padding(4, 5, 4, 5);
+            tabPage3.Size = new Size(1265, 144);
             tabPage3.TabIndex = 2;
             tabPage3.Text = "Product Creation";
             tabPage3.UseVisualStyleBackColor = true;
@@ -396,38 +427,40 @@
             // productAlias
             // 
             productAlias.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            productAlias.Location = new Point(585, 6);
-            productAlias.Margin = new Padding(2);
+            productAlias.Location = new Point(836, 10);
             productAlias.Name = "productAlias";
             productAlias.PlaceholderText = "Alias";
-            productAlias.Size = new Size(106, 23);
+            productAlias.Size = new Size(150, 31);
             productAlias.TabIndex = 9;
             // 
             // tabPage2
             // 
             tabPage2.Controls.Add(locationNameTextBox);
             tabPage2.Controls.Add(addLocationButton);
-            tabPage2.Location = new Point(4, 24);
+            tabPage2.Location = new Point(4, 34);
+            tabPage2.Margin = new Padding(4, 5, 4, 5);
             tabPage2.Name = "tabPage2";
-            tabPage2.Padding = new Padding(3);
-            tabPage2.Size = new Size(883, 81);
+            tabPage2.Padding = new Padding(4, 5, 4, 5);
+            tabPage2.Size = new Size(1265, 144);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Location Creation";
             tabPage2.UseVisualStyleBackColor = true;
             // 
             // locationNameTextBox
             // 
-            locationNameTextBox.Location = new Point(6, 6);
+            locationNameTextBox.Location = new Point(9, 10);
+            locationNameTextBox.Margin = new Padding(4, 5, 4, 5);
             locationNameTextBox.Name = "locationNameTextBox";
             locationNameTextBox.PlaceholderText = "Location Name";
-            locationNameTextBox.Size = new Size(150, 23);
+            locationNameTextBox.Size = new Size(213, 31);
             locationNameTextBox.TabIndex = 9;
             // 
             // addLocationButton
             // 
-            addLocationButton.Location = new Point(162, 6);
+            addLocationButton.Location = new Point(231, 10);
+            addLocationButton.Margin = new Padding(4, 5, 4, 5);
             addLocationButton.Name = "addLocationButton";
-            addLocationButton.Size = new Size(88, 27);
+            addLocationButton.Size = new Size(126, 45);
             addLocationButton.TabIndex = 10;
             addLocationButton.Text = "Add Location";
             addLocationButton.UseVisualStyleBackColor = true;
@@ -435,24 +468,91 @@
             // 
             // AdminTab
             // 
+            AdminTab.Controls.Add(QTPULLLOC);
+            AdminTab.Controls.Add(QT2FAAUTH);
+            AdminTab.Controls.Add(QT2FA);
+            AdminTab.Controls.Add(QTAuth);
+            AdminTab.Controls.Add(QTPassword);
+            AdminTab.Controls.Add(QTUsername);
             AdminTab.Controls.Add(DB_SWEEP);
-            AdminTab.Location = new Point(4, 24);
-            AdminTab.Margin = new Padding(2);
+            AdminTab.Location = new Point(4, 34);
             AdminTab.Name = "AdminTab";
-            AdminTab.Padding = new Padding(2);
-            AdminTab.Size = new Size(883, 81);
+            AdminTab.Padding = new Padding(3);
+            AdminTab.Size = new Size(1265, 144);
             AdminTab.TabIndex = 3;
             AdminTab.Text = "Admin";
             AdminTab.UseVisualStyleBackColor = true;
             // 
+            // QTPULLLOC
+            // 
+            QTPULLLOC.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            QTPULLLOC.Location = new Point(6, 53);
+            QTPULLLOC.Name = "QTPULLLOC";
+            QTPULLLOC.Size = new Size(130, 33);
+            QTPULLLOC.TabIndex = 6;
+            QTPULLLOC.Text = "Pull Locations";
+            QTPULLLOC.UseVisualStyleBackColor = true;
+            QTPULLLOC.Visible = false;
+            QTPULLLOC.Click += QTPULLLOC_Click;
+            // 
+            // QT2FAAUTH
+            // 
+            QT2FAAUTH.Location = new Point(466, 48);
+            QT2FAAUTH.Name = "QT2FAAUTH";
+            QT2FAAUTH.Size = new Size(131, 38);
+            QT2FAAUTH.TabIndex = 5;
+            QT2FAAUTH.Text = "Authenticate";
+            QT2FAAUTH.UseVisualStyleBackColor = true;
+            QT2FAAUTH.Visible = false;
+            QT2FAAUTH.Click += QT2FAAUTH_Click;
+            // 
+            // QT2FA
+            // 
+            QT2FA.Location = new Point(466, 12);
+            QT2FA.Name = "QT2FA";
+            QT2FA.PlaceholderText = "2FA";
+            QT2FA.Size = new Size(150, 31);
+            QT2FA.TabIndex = 4;
+            QT2FA.Visible = false;
+            // 
+            // QTAuth
+            // 
+            QTAuth.Location = new Point(154, 87);
+            QTAuth.Name = "QTAuth";
+            QTAuth.Padding = new Padding(3);
+            QTAuth.Size = new Size(126, 45);
+            QTAuth.TabIndex = 3;
+            QTAuth.Text = "Authenticate";
+            QTAuth.UseVisualStyleBackColor = true;
+            QTAuth.Click += QTAuth_Click;
+            // 
+            // QTPassword
+            // 
+            QTPassword.Location = new Point(154, 48);
+            QTPassword.Name = "QTPassword";
+            QTPassword.PasswordChar = 'ඞ';
+            QTPassword.PlaceholderText = "Password ඞ";
+            QTPassword.Size = new Size(261, 31);
+            QTPassword.TabIndex = 2;
+            // 
+            // QTUsername
+            // 
+            QTUsername.Location = new Point(154, 12);
+            QTUsername.Name = "QTUsername";
+            QTUsername.PlaceholderText = "Username";
+            QTUsername.Size = new Size(261, 31);
+            QTUsername.TabIndex = 1;
+            // 
             // DB_SWEEP
             // 
             DB_SWEEP.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            DB_SWEEP.AutoSize = true;
+            DB_SWEEP.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             DB_SWEEP.BackColor = Color.PaleVioletRed;
-            DB_SWEEP.Location = new Point(4, 4);
-            DB_SWEEP.Margin = new Padding(2);
+            DB_SWEEP.Location = new Point(6, 7);
             DB_SWEEP.Name = "DB_SWEEP";
-            DB_SWEEP.Size = new Size(78, 25);
+            DB_SWEEP.Padding = new Padding(3);
+            DB_SWEEP.Size = new Size(111, 41);
             DB_SWEEP.TabIndex = 0;
             DB_SWEEP.Text = "DB SWEEP";
             DB_SWEEP.UseVisualStyleBackColor = false;
@@ -460,25 +560,56 @@
             // SettingsButton
             // 
             SettingsButton.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            SettingsButton.Location = new Point(906, 8);
-            SettingsButton.Margin = new Padding(2);
+            SettingsButton.Location = new Point(1294, 13);
             SettingsButton.Name = "SettingsButton";
-            SettingsButton.Size = new Size(58, 28);
+            SettingsButton.Size = new Size(83, 47);
             SettingsButton.TabIndex = 12;
             SettingsButton.Text = "Settings";
             SettingsButton.UseVisualStyleBackColor = true;
+            SettingsButton.Visible = false;
             SettingsButton.Click += SettingsButton_Click_1;
+            // 
+            // BinTextBox
+            // 
+            BinTextBox.Location = new Point(673, 35);
+            BinTextBox.Name = "BinTextBox";
+            BinTextBox.PlaceholderText = "Bin";
+            BinTextBox.Size = new Size(150, 31);
+            BinTextBox.TabIndex = 21;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(673, 7);
+            label1.Name = "label1";
+            label1.Size = new Size(36, 25);
+            label1.TabIndex = 22;
+            label1.Text = "Bin";
+            // 
+            // BinSet
+            // 
+            BinSet.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            BinSet.AutoSize = true;
+            BinSet.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            BinSet.Location = new Point(829, 30);
+            BinSet.Name = "BinSet";
+            BinSet.Padding = new Padding(3);
+            BinSet.Size = new Size(53, 41);
+            BinSet.TabIndex = 23;
+            BinSet.Text = "Set";
+            BinSet.UseVisualStyleBackColor = true;
+            BinSet.Click += BinSet_Click;
             // 
             // Form1
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(971, 609);
+            ClientSize = new Size(1387, 1015);
             Controls.Add(SettingsButton);
             Controls.Add(searchTabs);
             Controls.Add(Product_List);
             Icon = (Icon)resources.GetObject("$this.Icon");
-            Margin = new Padding(4, 3, 4, 3);
+            Margin = new Padding(6, 5, 6, 5);
             Name = "Form1";
             Text = "Inventory  Manager";
             Load += Form1_Load;
@@ -493,8 +624,10 @@
             tabPage2.ResumeLayout(false);
             tabPage2.PerformLayout();
             AdminTab.ResumeLayout(false);
+            AdminTab.PerformLayout();
             ResumeLayout(false);
         }
+
 
         private TextBox productAlias;
         private TabPage AdminTab;
@@ -511,5 +644,19 @@
         private Label MinimumStockLabel;
         private Button AddMinimumStock;
         private Button SettingsButton;
+        private TextBox QuantityChangeAmtBox;
+        private Button quantityDown;
+        private Button quantityUp;
+        private Label QuantityText;
+        private TextBox QTPassword;
+        private TextBox QTUsername;
+        private Button QTAuth;
+        private Button QTPULLLOC;
+        private Button QT2FAAUTH;
+        private TextBox QT2FA;
+        private Button BarcodeGen;
+        private Button BinSet;
+        private Label label1;
+        private TextBox BinTextBox;
     }
 }

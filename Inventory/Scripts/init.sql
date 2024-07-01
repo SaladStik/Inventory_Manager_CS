@@ -54,3 +54,6 @@ INSERT INTO location (name) VALUES ('Stock');
 
 -- Insert initial suppliers
 INSERT INTO supplier (name) VALUES ('Active IS');
+
+
+--ALTER TABLE product ADD COLUMN bin VARCHAR(50);

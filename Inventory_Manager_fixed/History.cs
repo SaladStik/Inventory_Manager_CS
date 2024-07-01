@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
+using System.Drawing.Printing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -14,29 +16,52 @@ namespace Inventory_Manager
         private DataTable _historyDataTable;
         private List<Tuple<int, string>> _locations;
         private bool _isUpdatingLocation = false;
+        private List<string> _serialNumbersToPrint;
+        private DateTime _selectedStartDate;
+        private DateTime _selectedEndDate;
+        private bool _printFullTable;
+        private bool _isPrintDialogOpen = false; // Flag to prevent print dialog from opening twice
 
         public History(int productId, DataTable dataTable)
         {
             InitializeComponent();
             _dbIntegrator = new DB_Integrator();
             _historyDataTable = dataTable;
+            RenameColumns(); // Rename columns before setting the DataSource
             historyDataGridView.DataSource = _historyDataTable;
-            searchHistoryButton.Click += SearchHistoryButton_Click;
-            historyDataGridView.CellValueChanged += HistoryDataGridView_CellValueChanged;
-            historyDataGridView.EditingControlShowing += HistoryDataGridView_EditingControlShowing;
-            historyDataGridView.CellDoubleClick += HistoryDataGridView_CellDoubleClick;
+
+            UnsubscribeEventHandlers(); // Unsubscribe from all event handlers
+            SubscribeEventHandlers(); // Subscribe to all event handlers
+
             LoadLocationsAsync().Wait();
             InitializeLocationComboBoxColumn();
-            RenameColumns();
 
             LoadHistoryDataAsync(productId).Wait();
         }
 
+        private void UnsubscribeEventHandlers()
+        {
+            searchHistoryButton.Click -= SearchHistoryButton_Click;
+            Print.Click -= Print_Click;
+            historyDataGridView.CellValueChanged -= HistoryDataGridView_CellValueChanged;
+            historyDataGridView.EditingControlShowing -= HistoryDataGridView_EditingControlShowing;
+            historyDataGridView.CellDoubleClick -= HistoryDataGridView_CellDoubleClick;
+        }
+
+        private void SubscribeEventHandlers()
+        {
+            searchHistoryButton.Click += SearchHistoryButton_Click;
+            Print.Click += Print_Click;
+            historyDataGridView.CellValueChanged += HistoryDataGridView_CellValueChanged;
+            historyDataGridView.EditingControlShowing += HistoryDataGridView_EditingControlShowing;
+            historyDataGridView.CellDoubleClick += HistoryDataGridView_CellDoubleClick;
+        }
+
         private void RenameColumns()
         {
-            if (_historyDataTable.Columns.Contains("tkt_num"))
+            if (_historyDataTable.Columns.Contains("ticket_num"))
             {
-                _historyDataTable.Columns["tkt_num"].ColumnName = "Tkt #";
+                _historyDataTable.Columns["ticket_num"].ColumnName = "Tkt #";
             }
             if (_historyDataTable.Columns.Contains("note"))
             {
@@ -261,12 +286,173 @@ namespace Inventory_Manager
             {
                 string query = $"SELECT h.id, h.id_product, l.name AS location_name, h.serial_number, h.date, h.note AS Note, h.ticket_num AS \"Tkt #\" FROM history h JOIN location l ON h.id_location = l.id WHERE h.id_product = {productId} ORDER BY h.id ASC";
                 DataTable historyTable = await _dbIntegrator.GetDataTableAsync(query, null);
+                RenameColumns(); // Ensure columns are renamed after data is loaded
                 historyDataGridView.DataSource = historyTable;
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private async void Print_Click(object sender, EventArgs e)
+        {
+            if (_isPrintDialogOpen) return; // Prevent multiple print dialogs from opening
+            _isPrintDialogOpen = true;
+
+            try
+            {
+                _selectedStartDate = startDate.Value.Date;
+                _selectedEndDate = endDate.Value.Date;
+
+                // Ensure the end date includes the whole day
+                _selectedEndDate = _selectedEndDate.AddDays(1).AddTicks(-1);
+
+                string query = $@"
+            SELECT id_product, l.name AS location_name, serial_number, date, note, ticket_num
+            FROM history h
+            JOIN location l ON h.id_location = l.id
+            WHERE date BETWEEN '{_selectedStartDate:yyyy-MM-dd HH:mm:ss}' AND '{_selectedEndDate:yyyy-MM-dd HH:mm:ss}'";
+
+                DataTable dataTable = await new DB_Integrator().GetDataTableAsync(query, null);
+                if (dataTable.Rows.Count > 0)
+                {
+                    _historyDataTable = dataTable;
+                    _printFullTable = true;
+                    PrintSerialNumbers();
+                }
+                else
+                {
+                    MessageBox.Show("No serial numbers found for the selected date range.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}");
+                Console.WriteLine(ex);
+            }
+        }
+
+        private void PrintSerialNumbers()
+        {
+            PrintDocument printDocument = new PrintDocument();
+            printDocument.PrintPage += PrintDocument_PrintPage;
+
+            PrintDialog printDialog = new PrintDialog
+            {
+                Document = printDocument,
+                UseEXDialog = true
+            };
+
+            if (printDialog.ShowDialog() == DialogResult.OK)
+            {
+                printDocument.Print();
+            }
+            _isPrintDialogOpen = false; // Reset the flag after the dialog is closed
+        }
+
+        private void PrintDocument_PrintPage(object sender, PrintPageEventArgs e)
+        {
+            Graphics graphics = e.Graphics;
+            Font font = new Font("Arial", 10);
+            Font font2 = new Font("Arial", 16);
+            float lineHeight = font.GetHeight();
+            float yPosition = e.MarginBounds.Top;
+
+            string path = Environment.CurrentDirectory;
+            path = Path.Combine(path, "Images\\history.png");
+            // Load the image for the header
+            Image headerImage = Image.FromFile(path); // Change this to the path of your image file
+
+            // Calculate the header height
+            float headerHeight = headerImage.Height * 1.0f; // Increase the scaling factor for the image height
+            float headerImageWidth = headerImage.Width * 1.0f; // Increase the scaling factor for the image width
+
+            // Draw the image in the header
+            graphics.DrawImage(headerImage, e.MarginBounds.Left, yPosition, headerImageWidth, headerHeight);
+
+            // Draw the text next to the image
+            string headerText = $"Serial Numbers Inputted on {_selectedStartDate:MMMM dd,yyyy} to {_selectedEndDate:MMMM dd,yyyy}";
+            float textXPosition = e.MarginBounds.Left + headerImageWidth + 10; // Add some spacing between the image and text
+            graphics.DrawString(headerText, font2, Brushes.Black, textXPosition, yPosition + (headerHeight - font2.GetHeight()) / 2);
+
+            // Adjust yPosition for the next drawing
+            yPosition += headerHeight + 20; // Add some spacing after the header
+
+            // Calculate the maximum width required for each column based on the data
+            var columnWidths = new Dictionary<string, float>();
+            float totalColumnWidth = 0;
+            foreach (DataGridViewColumn column in historyDataGridView.Columns)
+            {
+                if (column.Name == "id" || column.Name == "id_product") continue; // Skip the "ID" and "id_product" columns
+
+                float maxWidth = 0;
+                foreach (DataGridViewRow row in historyDataGridView.Rows)
+                {
+                    if (row.IsNewRow) continue;
+                    float cellWidth = graphics.MeasureString(row.Cells[column.Index].Value?.ToString() ?? string.Empty, font).Width;
+                    if (cellWidth > maxWidth)
+                    {
+                        maxWidth = cellWidth;
+                    }
+                }
+                columnWidths[column.Name] = maxWidth + 10; // Add padding
+                totalColumnWidth += columnWidths[column.Name];
+            }
+
+            // Scale down if the table width exceeds the page width
+            float scale = 1.0f;
+            if (totalColumnWidth > e.MarginBounds.Width)
+            {
+                scale = e.MarginBounds.Width / totalColumnWidth;
+            }
+
+            // Adjust column widths based on the scale
+            foreach (var column in columnWidths.Keys.ToList())
+            {
+                columnWidths[column] *= scale;
+            }
+
+            // Print column headers
+            float xPosition = e.MarginBounds.Left;
+            foreach (DataGridViewColumn column in historyDataGridView.Columns)
+            {
+                if (column.Name == "id" || column.Name == "id_product") continue; // Skip the "ID" and "id_product" columns
+
+                float columnWidth = columnWidths[column.Name];
+                graphics.DrawRectangle(Pens.Black, xPosition, yPosition, columnWidth, lineHeight);
+                graphics.DrawString(column.HeaderText, font, Brushes.Black, xPosition, yPosition);
+                xPosition += columnWidth;
+            }
+
+            yPosition += lineHeight;
+
+            // Print rows
+            foreach (DataGridViewRow row in historyDataGridView.Rows)
+            {
+                if (row.IsNewRow) continue;
+
+                xPosition = e.MarginBounds.Left;
+                foreach (DataGridViewColumn column in historyDataGridView.Columns)
+                {
+                    if (column.Name == "id" || column.Name == "id_product") continue; // Skip the "ID" and "id_product" columns
+
+                    float columnWidth = columnWidths[column.Name];
+                    graphics.DrawRectangle(Pens.Black, xPosition, yPosition, columnWidth, lineHeight);
+                    graphics.DrawString(row.Cells[column.Index].Value?.ToString() ?? string.Empty, font, Brushes.Black, xPosition, yPosition);
+                    xPosition += columnWidth;
+                }
+
+                yPosition += lineHeight;
+
+                if (yPosition + lineHeight > e.MarginBounds.Bottom)
+                {
+                    e.HasMorePages = true;
+                    return;
+                }
+            }
+
+            e.HasMorePages = false;
         }
     }
 }

@@ -39,11 +39,10 @@
             // 
             Tabs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             Tabs.Controls.Add(MainTab);
-            Tabs.Location = new Point(8, 7);
-            Tabs.Margin = new Padding(2, 2, 2, 2);
+            Tabs.Location = new Point(11, 12);
             Tabs.Name = "Tabs";
             Tabs.SelectedIndex = 0;
-            Tabs.Size = new Size(308, 422);
+            Tabs.Size = new Size(440, 703);
             Tabs.TabIndex = 0;
             // 
             // MainTab
@@ -52,21 +51,19 @@
             MainTab.Controls.Add(groupBox1);
             MainTab.Controls.Add(DB_SERVER_IP_LABEL);
             MainTab.Controls.Add(DB_SERVER_IP_TEXT);
-            MainTab.Location = new Point(4, 24);
-            MainTab.Margin = new Padding(2, 2, 2, 2);
+            MainTab.Location = new Point(4, 34);
             MainTab.Name = "MainTab";
-            MainTab.Padding = new Padding(2, 2, 2, 2);
-            MainTab.Size = new Size(300, 394);
+            MainTab.Padding = new Padding(3, 3, 3, 3);
+            MainTab.Size = new Size(432, 665);
             MainTab.TabIndex = 1;
             MainTab.Text = "Main";
             MainTab.UseVisualStyleBackColor = true;
             // 
             // DB_SERVER_IP_BUTTON
             // 
-            DB_SERVER_IP_BUTTON.Location = new Point(4, 46);
-            DB_SERVER_IP_BUTTON.Margin = new Padding(2, 2, 2, 2);
+            DB_SERVER_IP_BUTTON.Location = new Point(6, 77);
             DB_SERVER_IP_BUTTON.Name = "DB_SERVER_IP_BUTTON";
-            DB_SERVER_IP_BUTTON.Size = new Size(78, 26);
+            DB_SERVER_IP_BUTTON.Size = new Size(111, 43);
             DB_SERVER_IP_BUTTON.TabIndex = 8;
             DB_SERVER_IP_BUTTON.Text = "Set";
             DB_SERVER_IP_BUTTON.UseVisualStyleBackColor = true;
@@ -81,11 +78,9 @@
             groupBox1.Controls.Add(DB_PASSWORD_AUTH_LABEL);
             groupBox1.Controls.Add(DB_AUTH_BUTTON);
             groupBox1.Controls.Add(DB_PASSWORD_AUTH_TEXT);
-            groupBox1.Location = new Point(4, 152);
-            groupBox1.Margin = new Padding(2, 2, 2, 2);
+            groupBox1.Location = new Point(6, 253);
             groupBox1.Name = "groupBox1";
-            groupBox1.Padding = new Padding(2, 2, 2, 2);
-            groupBox1.Size = new Size(244, 200);
+            groupBox1.Size = new Size(349, 333);
             groupBox1.TabIndex = 7;
             groupBox1.TabStop = false;
             groupBox1.Text = "Images Server";
@@ -94,57 +89,51 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(4, 16);
-            label1.Margin = new Padding(2, 0, 2, 0);
+            label1.Location = new Point(6, 27);
             label1.Name = "label1";
-            label1.Size = new Size(158, 15);
+            label1.Size = new Size(242, 25);
             label1.TabIndex = 6;
             label1.Text = "Images Database Server Path";
             // 
             // DB_IMAGES_SERVER_PATH
             // 
-            DB_IMAGES_SERVER_PATH.Location = new Point(7, 33);
-            DB_IMAGES_SERVER_PATH.Margin = new Padding(2, 2, 2, 2);
+            DB_IMAGES_SERVER_PATH.Location = new Point(10, 55);
             DB_IMAGES_SERVER_PATH.Name = "DB_IMAGES_SERVER_PATH";
             DB_IMAGES_SERVER_PATH.PlaceholderText = "ex: \\\\Server\\Share\\Data\\Images";
-            DB_IMAGES_SERVER_PATH.Size = new Size(234, 23);
+            DB_IMAGES_SERVER_PATH.Size = new Size(333, 31);
             DB_IMAGES_SERVER_PATH.TabIndex = 5;
             // 
             // DB_USERNAME_AUTH_LABEL
             // 
             DB_USERNAME_AUTH_LABEL.AutoSize = true;
-            DB_USERNAME_AUTH_LABEL.Location = new Point(7, 60);
-            DB_USERNAME_AUTH_LABEL.Margin = new Padding(2, 0, 2, 0);
+            DB_USERNAME_AUTH_LABEL.Location = new Point(10, 100);
             DB_USERNAME_AUTH_LABEL.Name = "DB_USERNAME_AUTH_LABEL";
-            DB_USERNAME_AUTH_LABEL.Size = new Size(60, 15);
+            DB_USERNAME_AUTH_LABEL.Size = new Size(91, 25);
             DB_USERNAME_AUTH_LABEL.TabIndex = 0;
             DB_USERNAME_AUTH_LABEL.Text = "Username";
             DB_USERNAME_AUTH_LABEL.Click += label1_Click;
             // 
             // DB_USERNAME_AUTH_TEXT
             // 
-            DB_USERNAME_AUTH_TEXT.Location = new Point(7, 77);
-            DB_USERNAME_AUTH_TEXT.Margin = new Padding(2, 2, 2, 2);
+            DB_USERNAME_AUTH_TEXT.Location = new Point(10, 128);
             DB_USERNAME_AUTH_TEXT.Name = "DB_USERNAME_AUTH_TEXT";
-            DB_USERNAME_AUTH_TEXT.Size = new Size(152, 23);
+            DB_USERNAME_AUTH_TEXT.Size = new Size(215, 31);
             DB_USERNAME_AUTH_TEXT.TabIndex = 1;
             // 
             // DB_PASSWORD_AUTH_LABEL
             // 
             DB_PASSWORD_AUTH_LABEL.AutoSize = true;
-            DB_PASSWORD_AUTH_LABEL.Location = new Point(7, 98);
-            DB_PASSWORD_AUTH_LABEL.Margin = new Padding(2, 0, 2, 0);
+            DB_PASSWORD_AUTH_LABEL.Location = new Point(10, 163);
             DB_PASSWORD_AUTH_LABEL.Name = "DB_PASSWORD_AUTH_LABEL";
-            DB_PASSWORD_AUTH_LABEL.Size = new Size(57, 15);
+            DB_PASSWORD_AUTH_LABEL.Size = new Size(87, 25);
             DB_PASSWORD_AUTH_LABEL.TabIndex = 2;
             DB_PASSWORD_AUTH_LABEL.Text = "Password";
             // 
             // DB_AUTH_BUTTON
             // 
-            DB_AUTH_BUTTON.Location = new Point(7, 141);
-            DB_AUTH_BUTTON.Margin = new Padding(2, 2, 2, 2);
+            DB_AUTH_BUTTON.Location = new Point(10, 235);
             DB_AUTH_BUTTON.Name = "DB_AUTH_BUTTON";
-            DB_AUTH_BUTTON.Size = new Size(89, 25);
+            DB_AUTH_BUTTON.Size = new Size(127, 42);
             DB_AUTH_BUTTON.TabIndex = 4;
             DB_AUTH_BUTTON.Text = "Authenticate";
             DB_AUTH_BUTTON.UseVisualStyleBackColor = true;
@@ -152,38 +141,34 @@
             // 
             // DB_PASSWORD_AUTH_TEXT
             // 
-            DB_PASSWORD_AUTH_TEXT.Location = new Point(7, 114);
-            DB_PASSWORD_AUTH_TEXT.Margin = new Padding(2, 2, 2, 2);
+            DB_PASSWORD_AUTH_TEXT.Location = new Point(10, 190);
             DB_PASSWORD_AUTH_TEXT.Name = "DB_PASSWORD_AUTH_TEXT";
-            DB_PASSWORD_AUTH_TEXT.PasswordChar = '●';
-            DB_PASSWORD_AUTH_TEXT.Size = new Size(152, 23);
+            DB_PASSWORD_AUTH_TEXT.PasswordChar = 'ඞ';
+            DB_PASSWORD_AUTH_TEXT.Size = new Size(215, 31);
             DB_PASSWORD_AUTH_TEXT.TabIndex = 3;
             // 
             // DB_SERVER_IP_LABEL
             // 
             DB_SERVER_IP_LABEL.AutoSize = true;
-            DB_SERVER_IP_LABEL.Location = new Point(4, 2);
-            DB_SERVER_IP_LABEL.Margin = new Padding(2, 0, 2, 0);
+            DB_SERVER_IP_LABEL.Location = new Point(6, 3);
             DB_SERVER_IP_LABEL.Name = "DB_SERVER_IP_LABEL";
-            DB_SERVER_IP_LABEL.Size = new Size(103, 15);
+            DB_SERVER_IP_LABEL.Size = new Size(160, 25);
             DB_SERVER_IP_LABEL.TabIndex = 6;
             DB_SERVER_IP_LABEL.Text = "Database Server IP";
             // 
             // DB_SERVER_IP_TEXT
             // 
-            DB_SERVER_IP_TEXT.Location = new Point(4, 19);
-            DB_SERVER_IP_TEXT.Margin = new Padding(2, 2, 2, 2);
+            DB_SERVER_IP_TEXT.Location = new Point(6, 32);
             DB_SERVER_IP_TEXT.Name = "DB_SERVER_IP_TEXT";
-            DB_SERVER_IP_TEXT.Size = new Size(185, 23);
+            DB_SERVER_IP_TEXT.Size = new Size(263, 31);
             DB_SERVER_IP_TEXT.TabIndex = 5;
             // 
             // Settings
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(325, 437);
+            ClientSize = new Size(464, 728);
             Controls.Add(Tabs);
-            Margin = new Padding(2, 2, 2, 2);
             Name = "Settings";
             Text = "Settings";
             Tabs.ResumeLayout(false);
