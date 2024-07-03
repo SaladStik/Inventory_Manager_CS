@@ -19,24 +19,39 @@ using System.Windows.Forms;
 using ZXing;
 using ZXing.Common;
 using ZXing.Rendering;
+using System.Reflection.Emit;
+using System.Reflection;
+
 
 namespace Inventory_Manager
 {
+
     public partial class Form1 : Form
     {
         private DB_Integrator _dbIntegrator;
         private System.Windows.Forms.Timer _refreshTimer;
+        private System.Windows.Forms.Timer _blinkTimer;
+        private List<DataGridViewRow> _blinkingRows;
         private static string _JSESSIONID = "";
         private static string _AUTH = "";
         private string _tempDirectory;
         private Bitmap _barcodeBitmap;
+        private string _labelConfigFile = "labelConfig.json"; // File to save label configurations
+        public LabelConfig _labelConfig; // Label configuration object
+        private string _currentSearchTerm;
+        private int _currentScrollRowIndex;
+
 
         public Form1()
         {
             InitializeComponent();
+            SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+            SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+            SetStyle(ControlStyles.UserPaint, true);
+            UpdateStyles();
             _dbIntegrator = new DB_Integrator();
 
-            // Initialize the timer
+            // Initialize the refresh timer
             _refreshTimer = new System.Windows.Forms.Timer();
             _refreshTimer.Interval = 10000; // 10 seconds
             _refreshTimer.Tick += RefreshTimer_Tick;
@@ -45,9 +60,28 @@ namespace Inventory_Manager
             _tempDirectory = Path.Combine(Path.GetTempPath(), "Inventory_BarcodeImages");
             Directory.CreateDirectory(_tempDirectory);
 
+            // Initialize the blink timer
+            _blinkTimer = new System.Windows.Forms.Timer();
+            _blinkTimer.Interval = 2000; // 2 seconds
+            _blinkTimer.Tick += BlinkTimer_Tick;
+            _blinkTimer.Start();
+
+            _blinkingRows = new List<DataGridViewRow>();
+            // Load label configurations
+            LoadLabelConfig();
+
             // Clean up temporary directory on application exit
             AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
+
         }
+
+        private void EnableDoubleBuffering()
+        {
+            typeof(DataGridView).InvokeMember("DoubleBuffered",
+                BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty,
+                null, Product_List, new object[] { true });
+        }
+
 
         public static string associate_product_supplier = "UPDATE product SET supplier_id = {0} WHERE id = {1};";
         public static string update_minimum_stock = "UPDATE product SET min_stock = {0} WHERE id = {1};";
@@ -73,7 +107,8 @@ namespace Inventory_Manager
             OR p.model_number ILIKE '%{0}%' 
             OR p.type ILIKE '%{0}%' 
             OR p.barcode ILIKE '%{0}%' 
-            OR p.alias ILIKE '%{0}%';";
+            OR p.alias ILIKE '%{0}%'
+            OR p.bin ILIKE '%{0}%';";
         public static string select_All_From_History = @"
              SELECT h.id, h.id_product, l.name AS location_name, h.serial_number, h.date, h.note, h.ticket_num
              FROM history h
@@ -90,12 +125,14 @@ namespace Inventory_Manager
         public static string select_Supplier = "SELECT id, name FROM supplier ORDER BY name ASC;";
         public static string update_supplier_link = "UPDATE product SET supplier_link = '{0}' WHERE id = {1};";
         public static string update_bin = "UPDATE product SET bin = '{0}' WHERE id = {1};";
+        public static string update_require_serial_number = "UPDATE product SET require_serial_number = {0} WHERE id = {1};";
 
         private async void Form1_Load(object sender, EventArgs e)
         {
             // Unsubscribe from existing event handlers if they are already attached
             Product_List.CellDoubleClick -= Product_List_CellDoubleClick;
             Product_List.DataBindingComplete -= Product_List_DataBindingComplete;
+            Product_List.SelectionChanged -= Product_List_SelectionChanged; // Add this line
             ImageUploadButton.Click -= ImageUploadButton_Click;
             SupplierAddButton.Click -= SupplierAddButton_Click;
             SupplierLinkButton.Click -= SupplierLinkButton_Click;
@@ -104,10 +141,22 @@ namespace Inventory_Manager
             MinimumStockTextBox.TextChanged -= MinimumStockTextBox_TextChanged;
             SettingsButton.Click -= SettingsButton_Click;
             BinSet.Click -= BinSet_Click;
+            LocationNamePrintBox.Click -= LocationNamePrintBox_Click;
+            UpdateType.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            UpdateType.AutoCompleteSource = AutoCompleteSource.ListItems;
 
+            // Ensure the buttons have their event handlers attached
+            setAlias.Click += setAlias_Click;
+            setModelNum.Click += setModelNum_Click;
+            setBarcode.Click += setBarcode_Click;
+            setType.Click += setType_Click;
+            await LoadTypesAsync(); // Load types into ComboBox
+
+            await LoadTypesIntoUpdateTypeComboBoxAsync(); // Load types into UpdateType ComboBox
             // Subscribe to event handlers
             Product_List.CellDoubleClick += Product_List_CellDoubleClick;
             Product_List.DataBindingComplete += Product_List_DataBindingComplete;
+            Product_List.SelectionChanged += Product_List_SelectionChanged; // Add this line
             ImageUploadButton.Click += ImageUploadButton_Click;
             SupplierAddButton.Click += SupplierAddButton_Click; // Add Supplier Button Click
             SupplierLinkButton.Click += SupplierLinkButton_Click; // Supplier Link Button Click
@@ -116,11 +165,54 @@ namespace Inventory_Manager
             MinimumStockTextBox.TextChanged += MinimumStockTextBox_TextChanged; // Handle text changes
             SettingsButton.Click += SettingsButton_Click; // Add Settings Button Click handler
             BinSet.Click += BinSet_Click; // Add Bin Set Button Click handler
+            LocationNamePrintBox.Click += LocationNamePrintBox_Click; // Add Location Name Print Button Click handler
 
             await LoadDataGridAsync();
             await LoadTypesAsync(); // Load types into ComboBox
             await LoadSuppliersAsync(); // Load suppliers into ComboBox
+            await LoadLocationsIntoComboBoxAsync(); // Load locations into ComboBox
+
+
         }
+
+        private async Task LoadLocationsIntoComboBoxAsync()
+        {
+            string query = "SELECT name FROM location ORDER BY name ASC";
+            DataTable dataTable = await _dbIntegrator.GetDataTableAsync(query, null);
+
+            locationNamePrintCombo.Items.Clear();
+            foreach (DataRow row in dataTable.Rows)
+            {
+                locationNamePrintCombo.Items.Add(row["name"].ToString());
+            }
+
+            locationNamePrintCombo.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            locationNamePrintCombo.AutoCompleteSource = AutoCompleteSource.ListItems;
+        }
+
+        private void LocationNamePrintBox_Click(object sender, EventArgs e)
+        {
+            // Get the selected location name
+            string locationName = locationNamePrintCombo.SelectedItem?.ToString();
+            if (string.IsNullOrEmpty(locationName))
+            {
+                MessageBox.Show("Please select a location.");
+                return;
+            }
+
+            // Show print dialog
+            PrintDocument printDoc = new PrintDocument();
+            printDoc.PrintPage += (s, ev) => PrintLocationName(ev, locationName);
+            PrintDialog printDialog = new PrintDialog();
+            printDialog.Document = printDoc;
+            if (printDialog.ShowDialog() == DialogResult.OK)
+            {
+                printDoc.Print();
+            }
+        }
+
+
+
 
         private void SettingsButton_Click(object sender, EventArgs e)
         {
@@ -188,7 +280,9 @@ namespace Inventory_Manager
 
         private async Task RefreshProductDataGridAsync()
         {
-            string searchTerm = searchTextBox.Text.Trim();
+            StoreCurrentSearchAndScrollPosition();
+
+            string searchTerm = _currentSearchTerm;
             int? selectedProductId = null;
             int? selectedRowIndex = null;
 
@@ -216,24 +310,24 @@ namespace Inventory_Manager
                 Product_List.Rows[selectedRowIndex.Value].Selected = true;
                 Product_List.FirstDisplayedScrollingRowIndex = selectedRowIndex.Value;
             }
+
+            RestoreSearchAndScrollPosition();
         }
+
 
         private async Task LoadDataGridAsync(int? selectedProductId = null)
         {
+            StoreCurrentSearchAndScrollPosition();
+
             string query = select_Product;
             DataTable dataTable = await _dbIntegrator.GetDataTableAsync(query, null);
 
-            var sortColumn = Product_List.SortedColumn;
-            var sortOrder = Product_List.SortOrder;
-
             Product_List.DataSource = dataTable;
 
-            if (sortColumn != null && Product_List.Columns.Contains(sortColumn.Name))
+            // Set the default sort column to "id"
+            if (Product_List.Columns.Contains("id"))
             {
-                ListSortDirection direction = sortOrder == SortOrder.Ascending
-                    ? ListSortDirection.Ascending
-                    : ListSortDirection.Descending;
-                Product_List.Sort(Product_List.Columns[sortColumn.Name], direction);
+                Product_List.Sort(Product_List.Columns["id"], ListSortDirection.Ascending);
             }
 
             if (selectedProductId.HasValue)
@@ -249,11 +343,36 @@ namespace Inventory_Manager
                     }
                 }
             }
+
+            UpdateDecreaseButtonState();
+
+            RestoreSearchAndScrollPosition();
+        }
+
+
+
+        private void UpdateDecreaseButtonState()
+        {
+            try
+            {
+
+
+                if (Product_List.SelectedRows.Count > 0)
+                {
+                    int quantity = Convert.ToInt32(Product_List.SelectedRows[0].Cells["quantity"].Value);
+                    quantityDown.Enabled = quantity > 0;
+                }
+            }
+            catch (Exception e)
+            {
+
+            }
         }
 
         private void Product_List_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
         {
-            // Iterate through the rows and change colors based on stock levels
+            _blinkingRows.Clear();
+
             foreach (DataGridViewRow row in Product_List.Rows)
             {
                 if (row.Cells["quantity"].Value != DBNull.Value && row.Cells["min_stock"].Value != DBNull.Value)
@@ -264,15 +383,37 @@ namespace Inventory_Manager
                     if (quantity <= 0)
                     {
                         row.DefaultCellStyle.BackColor = Color.Red;
+                        quantityDown.Enabled = false; // Disable the Decrease Quantity button
                     }
                     else if (quantity < minStock)
                     {
-                        row.DefaultCellStyle.BackColor = Color.Yellow;
+                        row.DefaultCellStyle.BackColor = Color.White;
+                        _blinkingRows.Add(row);
                     }
                     else
                     {
                         row.DefaultCellStyle.BackColor = Color.White;
                     }
+                }
+            }
+        }
+
+        private void Product_List_SelectionChanged(object sender, EventArgs e)
+        {
+            UpdateDecreaseButtonState();
+        }
+
+        private void BlinkTimer_Tick(object sender, EventArgs e)
+        {
+            foreach (var row in _blinkingRows)
+            {
+                if (row.DefaultCellStyle.BackColor == Color.White)
+                {
+                    row.DefaultCellStyle.BackColor = Color.Red;
+                }
+                else
+                {
+                    row.DefaultCellStyle.BackColor = Color.White;
                 }
             }
         }
@@ -301,6 +442,7 @@ namespace Inventory_Manager
 
         private async void searchButton_Click(object sender, EventArgs e)
         {
+            StoreCurrentSearchAndScrollPosition();
             string searchTerm = searchTextBox.Text.Trim();
             if (!string.IsNullOrEmpty(searchTerm))
             {
@@ -322,9 +464,11 @@ namespace Inventory_Manager
             }
             else
             {
-                await LoadDataGridAsync(); // Load all data if search term is empty
+                await LoadDataGridAsync();
             }
+            RestoreSearchAndScrollPosition();
         }
+
 
         private async void Product_List_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
@@ -508,6 +652,7 @@ namespace Inventory_Manager
                 await _dbIntegrator.QueryAsync(query, null);
                 MessageBox.Show("Location added successfully.");
                 locationNameTextBox.Clear();
+                await LoadLocationsIntoComboBoxAsync(); // Refresh the ComboBox
             }
             catch (Exception ex)
             {
@@ -524,10 +669,10 @@ namespace Inventory_Manager
             int quantity;
             string barcode = barcodeTextBox.Text.Trim();
             bool requireSerialNumber = requireSerialNumberCheckBox.Checked;
-            string supplier = supplierSelectionBox.Text.Trim();
-            string supplierLink = supplierLinkBox.Text.Trim();
+            string supplier = "";
+            string supplierLink = "";
             int? minStock = null;
-            string bin = BinTextBox.Text.Trim();
+            string bin = "";
 
             if (string.IsNullOrEmpty(modelNumber) || string.IsNullOrEmpty(type) || !int.TryParse(quantityTextBox.Text.Trim(), out quantity) || string.IsNullOrEmpty(barcode))
             {
@@ -994,9 +1139,17 @@ namespace Inventory_Manager
 
         private async void QTPULLLOC_Click(object sender, EventArgs e)
         {
+            pullLocLoadingBar.Visible = true; // Show the progress bar
+            pullLocLoadingBar.Style = ProgressBarStyle.Marquee; // Set style to marquee initially
+
             //pull location
             List<CompanyInformation> clients = await GetClients();
             clients = clients.OrderBy(x => x.name).ToList();
+
+            pullLocLoadingBar.Style = ProgressBarStyle.Continuous; // Change to continuous style
+            pullLocLoadingBar.Maximum = clients.Count; // Set maximum value
+            pullLocLoadingBar.Value = 0; // Reset progress bar
+
             foreach (var client in clients)
             {
                 string query = string.Format(insert_location, client.name);
@@ -1004,6 +1157,7 @@ namespace Inventory_Manager
                 try
                 {
                     await _dbIntegrator.QueryAsync(query, null);
+                    pullLocLoadingBar.Value += 1; // Increment the progress bar
                     //MessageBox.Show("Location added successfully.");
                     locationNameTextBox.Clear();
                 }
@@ -1013,6 +1167,8 @@ namespace Inventory_Manager
                     Console.WriteLine(ex);
                 }
             }
+
+            pullLocLoadingBar.Visible = false; // Hide the progress bar
         }
 
         public async Task<List<CompanyInformation>> GetClients()
@@ -1069,9 +1225,11 @@ namespace Inventory_Manager
             if (Product_List.SelectedRows.Count > 0)
             {
                 string barcode = Product_List.SelectedRows[0].Cells["barcode"].Value?.ToString();
+                string alias = Product_List.SelectedRows[0].Cells["alias"].Value?.ToString();
+
                 if (!string.IsNullOrEmpty(barcode))
                 {
-                    GenerateBarcode(barcode);
+                    GenerateBarcode(barcode, alias);
                 }
                 else
                 {
@@ -1084,21 +1242,21 @@ namespace Inventory_Manager
             }
         }
 
-        private void GenerateBarcode(string barcodeText)
+        private void GenerateBarcode(string barcodeText, string alias)
         {
             var barcodeWriter = new BarcodeWriter<Bitmap>
             {
                 Format = BarcodeFormat.CODE_128,
                 Options = new EncodingOptions
                 {
-                    Width = 300,
-                    Height = 100,
+                    Width = _labelConfig.Width,
+                    Height = _labelConfig.Length,
                     Margin = 10
                 },
                 Renderer = new CustomBitmapRenderer() // Use the custom renderer
             };
 
-            _barcodeBitmap = barcodeWriter.Write(barcodeText);
+            _barcodeBitmap = barcodeWriter.Write($"{alias}|{barcodeText}");
 
             string filePath = Path.Combine(_tempDirectory, $"{barcodeText}.png");
             _barcodeBitmap.Save(filePath, System.Drawing.Imaging.ImageFormat.Png);
@@ -1114,12 +1272,489 @@ namespace Inventory_Manager
             }
         }
 
+        private void PrintLocationName(PrintPageEventArgs e, string locationName)
+        {
+            // Load calibrated label dimensions
+            int labelWidth = _labelConfig.Width;
+            int labelHeight = _labelConfig.Length;
+
+            // Initialize the font with a starting size
+            float fontSize = 25; // Start with a reasonable font size
+            Font font = new Font("Arial", fontSize);
+
+            // Measure the size of the text
+            SizeF textSize = e.Graphics.MeasureString(locationName, font);
+
+            // Increase the font size until the text no longer fits within the label dimensions
+            while (textSize.Width < labelWidth && textSize.Height < labelHeight)
+            {
+                fontSize += 1;
+                font = new Font("Arial", fontSize);
+                textSize = e.Graphics.MeasureString(locationName, font);
+            }
+
+            // Reduce the font size by one to ensure it fits
+            fontSize -= 1;
+            font = new Font("Arial", fontSize);
+            textSize = e.Graphics.MeasureString(locationName, font);
+
+            // Define the position for the text
+            float x = 0; // Fixed position from the left
+            float y = 0; // Fixed position from the top
+
+            // Draw the location name
+            e.Graphics.DrawString(locationName, font, Brushes.Black, new PointF(x, y));
+        }
+
+
+
+
         private void PrintDoc_PrintPage(object sender, PrintPageEventArgs e)
         {
             if (_barcodeBitmap != null)
             {
                 e.Graphics.DrawImage(_barcodeBitmap, new Point(0, 0));
             }
+        }
+
+        private async void SerialNumberReqRemoval_Click(object sender, EventArgs e)
+        {
+            if (Product_List.SelectedRows.Count > 0)
+            {
+                DialogResult result = MessageBox.Show(
+                    "Are you sure you want to remove the serial number requirement?",
+                    "Confirmation",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning,
+                    MessageBoxDefaultButton.Button2);
+
+                if (result == DialogResult.Yes)
+                {
+                    // Disable the button to prevent multiple clicks
+                    SerialNumberReqRemoval.Enabled = false;
+
+                    // Get the selected product ID
+                    int productId = Convert.ToInt32(Product_List.SelectedRows[0].Cells["id"].Value);
+
+                    try
+                    {
+                        // Update the product to remove the serial number requirement
+                        string query = string.Format(update_require_serial_number, false, productId);
+                        await _dbIntegrator.QueryAsync(query, null);
+
+                        MessageBox.Show("Serial number requirement removed successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        await LoadDataGridAsync(productId); // Refresh the DataGridView and reselect the row
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Console.WriteLine(ex);
+                    }
+                    finally
+                    {
+                        // Re-enable the button
+                        SerialNumberReqRemoval.Enabled = true;
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select a product.");
+            }
+        }
+
+        private async void EnableSerialNumberReq_Click(object sender, EventArgs e)
+        {
+            if (Product_List.SelectedRows.Count > 0)
+            {
+                DialogResult result = MessageBox.Show(
+                    "Are you sure you want to enable the serial number requirement?",
+                    "Confirmation",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning,
+                    MessageBoxDefaultButton.Button2);
+
+                if (result == DialogResult.Yes)
+                {
+                    // Disable the button to prevent multiple clicks
+                    EnableSerialNumberReq.Enabled = false;
+
+                    // Get the selected product ID
+                    int productId = Convert.ToInt32(Product_List.SelectedRows[0].Cells["id"].Value);
+
+                    try
+                    {
+                        // Update the product to enable the serial number requirement
+                        string query = string.Format(update_require_serial_number, true, productId);
+                        await _dbIntegrator.QueryAsync(query, null);
+
+                        MessageBox.Show("Serial number requirement enabled successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        await LoadDataGridAsync(productId); // Refresh the DataGridView and reselect the row
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Console.WriteLine(ex);
+                    }
+                    finally
+                    {
+                        // Re-enable the button
+                        EnableSerialNumberReq.Enabled = true;
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select a product.");
+            }
+        }
+
+        private async void SelectViaScan_Click(object sender, EventArgs e)
+        {
+            using (var barcodeInputForm = new BarcodeInputForm())
+            {
+                while (true)
+                {
+                    if (barcodeInputForm.ShowDialog() == DialogResult.OK)
+                    {
+                        string scannedBarcode = barcodeInputForm.EnteredBarcode;
+                        if (string.IsNullOrEmpty(scannedBarcode))
+                        {
+                            MessageBox.Show("Please enter a valid barcode.");
+                            continue;
+                        }
+
+                        // Check if the barcode exists in the system
+                        string query = $"SELECT * FROM product WHERE barcode = '{scannedBarcode}'";
+                        DataTable dataTable = await _dbIntegrator.GetDataTableAsync(query, null);
+
+                        if (dataTable.Rows.Count > 0)
+                        {
+                            // Show the confirmation dialog
+                            var confirmResult = MessageBox.Show(
+                                $"Is this the correct barcode: {scannedBarcode}?",
+                                "Confirm Barcode",
+                                MessageBoxButtons.YesNo);
+
+                            if (confirmResult == DialogResult.Yes)
+                            {
+                                // Handle adding or removing stock
+                                var productRow = dataTable.Rows[0];
+                                bool requireSerialNumber = Convert.ToBoolean(productRow["require_serial_number"]);
+
+                                if (requireSerialNumber)
+                                {
+                                    // Handle serial number tracked product
+                                    var quantityForm = new QuantityForm();
+                                    if (quantityForm.ShowDialog() == DialogResult.OK)
+                                    {
+                                        int quantity = quantityForm.Quantity;
+                                        await UpdateProductQuantityAsync(true, quantity, scannedBarcode, requireSerialNumber);
+                                    }
+                                    else
+                                    {
+                                        continue;
+                                    }
+                                }
+                                else
+                                {
+                                    // Handle non-serial number tracked product
+                                    var quantityForm = new QuantityForm();
+                                    if (quantityForm.ShowDialog() == DialogResult.OK)
+                                    {
+                                        int quantity = quantityForm.Quantity;
+
+                                        var addRemoveResult = MessageBox.Show(
+                                            "Are you adding to stock?",
+                                            "Add or Remove",
+                                            MessageBoxButtons.YesNoCancel);
+
+                                        if (addRemoveResult == DialogResult.Yes)
+                                        {
+                                            await UpdateProductQuantityAsync(true, quantity, scannedBarcode, requireSerialNumber);
+                                        }
+                                        else if (addRemoveResult == DialogResult.No)
+                                        {
+                                            await UpdateProductQuantityAsync(false, quantity, scannedBarcode, requireSerialNumber);
+                                        }
+                                        else
+                                        {
+                                            continue;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        continue;
+                                    }
+                                }
+                                break; // Exit the loop if everything is processed correctly
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show("Barcode not found.");
+                        }
+                    }
+                    else
+                    {
+                        break; // Exit the loop if the user cancels
+                    }
+                }
+            }
+        }
+
+        private async Task UpdateProductQuantityAsync(bool isIncrease, int quantity, string barcode, bool requireSerialNumber)
+        {
+            string query = $"SELECT id FROM product WHERE barcode = '{barcode}'";
+            DataTable dataTable = await _dbIntegrator.GetDataTableAsync(query, null);
+
+            if (dataTable.Rows.Count > 0)
+            {
+                int productId = Convert.ToInt32(dataTable.Rows[0]["id"]);
+
+                if (requireSerialNumber)
+                {
+                    List<string> serialNumbers = await PromptForSerialNumbers(quantity);
+                    if (serialNumbers.Count != quantity)
+                    {
+                        return;
+                    }
+                    foreach (string serialNumber in serialNumbers)
+                    {
+                        string insertHistory = string.Format(insert_data_into_history_if_not_exists, productId, 1, serialNumber, DateTime.Now.ToString("yyyy-MM-dd"), "");
+                        await _dbIntegrator.QueryAsync(insertHistory, null);
+                    }
+                }
+
+                if (!isIncrease)
+                {
+                    quantity = -quantity;
+                }
+
+                string updateQuery = string.Format(updateQuantity, quantity, productId);
+                await _dbIntegrator.QueryAsync(updateQuery, null);
+
+                await LoadDataGridAsync(productId); // Refresh the DataGridView and reselect the row
+            }
+        }
+
+        private async Task LoadTypesIntoUpdateTypeComboBoxAsync()
+        {
+            string query = "SELECT DISTINCT type FROM product";
+            DataTable dataTable = await _dbIntegrator.GetDataTableAsync(query, null);
+            UpdateType.Items.Clear();
+            foreach (DataRow row in dataTable.Rows)
+            {
+                UpdateType.Items.Add(row["type"].ToString());
+            }
+
+            UpdateType.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            UpdateType.AutoCompleteSource = AutoCompleteSource.ListItems;
+        }
+
+
+        private async void DB_SWEEP_Click(object sender, EventArgs e)
+        {
+            await PerformDBSweepAsync();
+        }
+
+        private async void setAlias_Click(object sender, EventArgs e)
+        {
+            if (Product_List.SelectedRows.Count > 0)
+            {
+                int productId = Convert.ToInt32(Product_List.SelectedRows[0].Cells["id"].Value);
+                string newAlias = AliasText.Text.Trim();
+
+                if (string.IsNullOrEmpty(newAlias))
+                {
+                    MessageBox.Show("Please enter a valid alias.");
+                    return;
+                }
+
+                string query = $"UPDATE product SET alias = '{newAlias}' WHERE id = {productId}";
+                await _dbIntegrator.QueryAsync(query, null);
+                MessageBox.Show("Alias updated successfully.");
+                await LoadDataGridAsync(productId); // Refresh the DataGridView and reselect the row
+            }
+            else
+            {
+                MessageBox.Show("Please select a product.");
+            }
+        }
+
+        private async void setModelNum_Click(object sender, EventArgs e)
+        {
+            if (Product_List.SelectedRows.Count > 0)
+            {
+                int productId = Convert.ToInt32(Product_List.SelectedRows[0].Cells["id"].Value);
+                string newModelNum = ModelNumText.Text.Trim();
+
+                if (string.IsNullOrEmpty(newModelNum))
+                {
+                    MessageBox.Show("Please enter a valid model number.");
+                    return;
+                }
+
+                string query = $"UPDATE product SET model_number = '{newModelNum}' WHERE id = {productId}";
+                await _dbIntegrator.QueryAsync(query, null);
+                MessageBox.Show("Model number updated successfully.");
+                await LoadDataGridAsync(productId); // Refresh the DataGridView and reselect the row
+            }
+            else
+            {
+                MessageBox.Show("Please select a product.");
+            }
+        }
+
+        private async void setBarcode_Click(object sender, EventArgs e)
+        {
+            if (Product_List.SelectedRows.Count > 0)
+            {
+                int productId = Convert.ToInt32(Product_List.SelectedRows[0].Cells["id"].Value);
+                string newBarcode = BarcodeText.Text.Trim();
+
+                if (string.IsNullOrEmpty(newBarcode))
+                {
+                    MessageBox.Show("Please enter a valid barcode.");
+                    return;
+                }
+
+                string query = $"UPDATE product SET barcode = '{newBarcode}' WHERE id = {productId}";
+                await _dbIntegrator.QueryAsync(query, null);
+                MessageBox.Show("Barcode updated successfully.");
+                await LoadDataGridAsync(productId); // Refresh the DataGridView and reselect the row
+            }
+            else
+            {
+                MessageBox.Show("Please select a product.");
+            }
+        }
+
+        private async void setType_Click(object sender, EventArgs e)
+        {
+            if (Product_List.SelectedRows.Count > 0)
+            {
+                int productId = Convert.ToInt32(Product_List.SelectedRows[0].Cells["id"].Value);
+                string newType = UpdateType.Text.Trim();
+
+                if (string.IsNullOrEmpty(newType))
+                {
+                    MessageBox.Show("Please select a valid type.");
+                    return;
+                }
+
+                string query = $"UPDATE product SET type = '{newType}' WHERE id = {productId}";
+                await _dbIntegrator.QueryAsync(query, null);
+                MessageBox.Show("Type updated successfully.");
+                await LoadDataGridAsync(productId); // Refresh the DataGridView and reselect the row
+            }
+            else
+            {
+                MessageBox.Show("Please select a product.");
+            }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            CalibrateLabels_Click(sender, e);
+        }
+
+        private void LoadLabelConfig()
+        {
+            if (File.Exists(_labelConfigFile))
+            {
+                string json = File.ReadAllText(_labelConfigFile);
+                _labelConfig = JsonConvert.DeserializeObject<LabelConfig>(json);
+                LabelWidth.Text = _labelConfig.Width.ToString();
+                LabelLength.Text = _labelConfig.Length.ToString();
+            }
+            else
+            {
+                _labelConfig = new LabelConfig();
+            }
+        }
+
+
+        private void SaveLabelConfig()
+        {
+            var config = new LabelConfig
+            {
+                Width = int.Parse(LabelWidth.Text),
+                Length = int.Parse(LabelLength.Text)
+            };
+            File.WriteAllText(_labelConfigFile, JsonConvert.SerializeObject(config));
+        }
+
+        private void CalibrateLabels_Click(object sender, EventArgs e)
+        {
+            int width = int.Parse(LabelWidth.Text);
+            int length = int.Parse(LabelLength.Text);
+
+            // Show print dialog
+            PrintDocument printDoc = new PrintDocument();
+            printDoc.DefaultPageSettings.PaperSize = new PaperSize("Legal", width, length);
+            printDoc.PrintPage += (s, ev) => PrintCalibrationPage(ev, width, length);
+            PrintDialog printDialog = new PrintDialog();
+            printDialog.Document = printDoc;
+            if (printDialog.ShowDialog() == DialogResult.OK)
+            {
+                printDoc.Print();
+            }
+
+            // Save the new label configurations
+            SaveLabelConfig();
+        }
+
+        private void PrintCalibrationPage(PrintPageEventArgs e, int width, int length)
+        {
+            using (Font font = new Font("Arial", 20))
+            {
+                // Draw a box around the edge
+                e.Graphics.DrawRectangle(Pens.Black, 0, 0, width - 1, length - 1);
+
+                // Draw "Test" in the center
+                string text = "Test";
+                SizeF textSize = e.Graphics.MeasureString(text, font);
+                float x = (width - textSize.Width) / 2;
+                float y = (length - textSize.Height) / 2;
+                e.Graphics.DrawString(text, font, Brushes.Black, x, y);
+            }
+        }
+
+        private void StoreCurrentSearchAndScrollPosition()
+        {
+            _currentSearchTerm = searchTextBox.Text.Trim();
+
+            if (Product_List.FirstDisplayedScrollingRowIndex >= 0)
+            {
+                _currentScrollRowIndex = Product_List.FirstDisplayedScrollingRowIndex;
+            }
+            else
+            {
+                _currentScrollRowIndex = 0;
+            }
+        }
+
+
+        private void RestoreSearchAndScrollPosition()
+        {
+            searchTextBox.Text = _currentSearchTerm;
+            if (!string.IsNullOrEmpty(_currentSearchTerm))
+            {
+                string searchQuery = string.Format(search_function, _currentSearchTerm.ToLower());
+                DataTable dataTable = _dbIntegrator.GetDataTableAsync(searchQuery, null).Result;
+                Product_List.DataSource = dataTable;
+            }
+
+            if (_currentScrollRowIndex >= 0 && _currentScrollRowIndex < Product_List.Rows.Count)
+            {
+                Product_List.FirstDisplayedScrollingRowIndex = _currentScrollRowIndex;
+            }
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
         }
     }
 
@@ -1128,41 +1763,73 @@ namespace Inventory_Manager
         public string name { get; set; }
     }
 
+    public class LabelConfig
+    {
+        public int Width { get; set; }
+        public int Length { get; set; }
+    }
+
     public class CustomBitmapRenderer : IBarcodeRenderer<Bitmap>
     {
+
+        private string _labelConfigFile = "labelConfig.json"; // File to save label configurations
+        public LabelConfig _labelConfig; // Label configuration object
+
+        private void LoadLabelConfig()
+        {
+            if (File.Exists(_labelConfigFile))
+            {
+                string json = File.ReadAllText(_labelConfigFile);
+                _labelConfig = JsonConvert.DeserializeObject<LabelConfig>(json);
+            }
+            else
+            {
+                _labelConfig = new LabelConfig();
+            }
+        }
         public Bitmap Render(BitMatrix matrix, BarcodeFormat format, string content, EncodingOptions options)
         {
-            int width = matrix.Width;
-            int height = matrix.Height;
-            int margin = options?.Margin ?? 10;
-            int fontSize = 14;
+            LoadLabelConfig();
+            string[] parts = content.Split('|');
+            string alias = parts[0];
+            string barcodeText = parts[1];
 
-            Font font = new Font("Arial", fontSize);
-            SizeF textSize;
+            int width = _labelConfig.Width;
+            int height = _labelConfig.Length;
+            int margin = options?.Margin ?? 10;
+
+            Font aliasFont = new Font("Arial", 15);  // Font size 15 for alias
+            Font barcodeFont = new Font("Arial", 14);  // Font size 14 for barcode text
+
+            SizeF aliasSize;
+            SizeF barcodeSize;
 
             using (var tempBitmap = new Bitmap(1, 1))
             using (var graphics = Graphics.FromImage(tempBitmap))
             {
-                textSize = graphics.MeasureString(content, font);
+                aliasSize = graphics.MeasureString(alias, aliasFont);
+                barcodeSize = graphics.MeasureString(barcodeText, barcodeFont);
             }
 
-            int totalHeight = height + margin + (int)textSize.Height;
+            int totalHeight = height + margin + (int)barcodeSize.Height + (int)aliasSize.Height;
             var bitmap = new Bitmap(width, totalHeight);
 
             using (var graphics = Graphics.FromImage(bitmap))
             {
                 graphics.Clear(Color.White);
 
+                graphics.DrawString(alias, aliasFont, Brushes.Black, new PointF((width - aliasSize.Width) / 2, 0));
+
                 for (int y = 0; y < height; y++)
                 {
                     for (int x = 0; x < width; x++)
                     {
                         var color = matrix[x, y] ? Color.Black : Color.White;
-                        bitmap.SetPixel(x, y, color);
+                        bitmap.SetPixel(x, y + (int)aliasSize.Height, color);
                     }
                 }
 
-                graphics.DrawString(content, font, Brushes.Black, new PointF((width - textSize.Width) / 2, height + margin));
+                graphics.DrawString(barcodeText, barcodeFont, Brushes.Black, new PointF((width - barcodeSize.Width) / 2, height + margin + aliasSize.Height));
             }
 
             return bitmap;
@@ -1172,5 +1839,9 @@ namespace Inventory_Manager
         {
             return Render(matrix, format, content, null);
         }
+
+        
     }
+
+
 }

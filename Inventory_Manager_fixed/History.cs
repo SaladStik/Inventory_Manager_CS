@@ -71,7 +71,7 @@ namespace Inventory_Manager
 
         private async Task LoadLocationsAsync()
         {
-            string query = "SELECT id, name FROM location";
+            string query = "SELECT id, name FROM location ORDER BY name";
             DataTable dataTable = await new DB_Integrator().GetDataTableAsync(query, null);
             _locations = dataTable.AsEnumerable().Select(row => new Tuple<int, string>(row.Field<int>("id"), row.Field<string>("name"))).ToList();
         }
@@ -150,6 +150,13 @@ namespace Inventory_Manager
                     string newTicketNum = row.Cells["Tkt #"].Value.ToString();
                     string updateTicketNumQuery = $"UPDATE history SET ticket_num = '{newTicketNum}' WHERE id = {historyId}";
                     await new DB_Integrator().QueryAsync(updateTicketNumQuery, null);
+                }
+
+                if (e.ColumnIndex == historyDataGridView.Columns["serial_number"].Index)
+                {
+                    string newSerialNumber = row.Cells["serial_number"].Value.ToString();
+                    string updateSerialNumberQuery = $"UPDATE history SET serial_number = '{newSerialNumber}' WHERE id = {historyId}";
+                    await new DB_Integrator().QueryAsync(updateSerialNumberQuery, null);
                 }
 
                 if (e.ColumnIndex == historyDataGridView.Columns["location_name"].Index && e.RowIndex >= 0)
@@ -266,9 +273,11 @@ namespace Inventory_Manager
                 {
                     bool noteColumnExists = historyDataGridView.Columns.Contains("Note");
                     bool tktNumColumnExists = historyDataGridView.Columns.Contains("Tkt #");
+                    bool serialNumberColumnExists = historyDataGridView.Columns.Contains("serial_number");
 
                     if ((noteColumnExists && e.ColumnIndex == historyDataGridView.Columns["Note"].Index) ||
-                        (tktNumColumnExists && e.ColumnIndex == historyDataGridView.Columns["Tkt #"].Index))
+                        (tktNumColumnExists && e.ColumnIndex == historyDataGridView.Columns["Tkt #"].Index) ||
+                        (serialNumberColumnExists && e.ColumnIndex == historyDataGridView.Columns["serial_number"].Index))
                     {
                         historyDataGridView.BeginEdit(true);
                     }
