@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Data;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Inventory.DB_Interaction
 {
@@ -73,6 +74,79 @@ namespace Inventory.DB_Interaction
             }
 
             return dataTable;
+        }
+
+        // New method for parameterized non-query operations
+        public async Task QueryWithParametersAsync(string sql, Dictionary<string, object> parameters)
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                using var command = new NpgsqlCommand(sql, conn);
+                if (parameters != null)
+                {
+                    foreach (var param in parameters)
+                    {
+                        command.Parameters.AddWithValue(param.Key, param.Value);
+                    }
+                }
+                await command.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error executing query: {ex.Message}");
+                throw;
+            }
+        }
+
+        // New method for parameterized select operations
+        public async Task<DataTable> GetDataTableWithParametersAsync(string sql, Dictionary<string, object> parameters)
+        {
+            DataTable dataTable = new DataTable();
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                using var command = new NpgsqlCommand(sql, conn);
+                if (parameters != null)
+                {
+                    foreach (var param in parameters)
+                    {
+                        command.Parameters.AddWithValue(param.Key, param.Value);
+                    }
+                }
+                using var adapter = new NpgsqlDataAdapter(command);
+                adapter.Fill(dataTable);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting data table: {ex.Message}");
+                throw;
+            }
+
+            return dataTable;
+        }
+
+        // New method for parameterized select operations returning a single value
+        public async Task<object?> SelectWithParametersAsync(string sql, Dictionary<string, object> parameters)
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                using var command = new NpgsqlCommand(sql, conn);
+                if (parameters != null)
+                {
+                    foreach (var param in parameters)
+                    {
+                        command.Parameters.AddWithValue(param.Key, param.Value);
+                    }
+                }
+                return await command.ExecuteScalarAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error executing select: {ex.Message}");
+                throw;
+            }
         }
     }
 }

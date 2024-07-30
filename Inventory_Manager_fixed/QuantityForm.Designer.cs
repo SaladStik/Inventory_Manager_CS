@@ -19,27 +19,40 @@ namespace Inventory_Manager
         {
             quantityTextBox = new TextBox();
             confirmButton = new Button();
-
+            SuspendLayout();
+            // 
+            // quantityTextBox
+            // 
             quantityTextBox.Location = new Point(12, 12);
-            quantityTextBox.Size = new Size(260, 20);
+            quantityTextBox.Name = "quantityTextBox";
             quantityTextBox.PlaceholderText = "Enter Quantity";
-
-
+            quantityTextBox.Size = new Size(351, 31);
+            quantityTextBox.TabIndex = 0;
+            // 
+            // confirmButton
+            // 
             confirmButton.AutoSize = true;
             confirmButton.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            confirmButton.Location = new Point(100, 50);
-            confirmButton.Size = new Size(75, 23);
+            confirmButton.Location = new Point(163, 49);
+            confirmButton.Name = "confirmButton";
+            confirmButton.Size = new Size(62, 35);
+            confirmButton.TabIndex = 1;
             confirmButton.Text = "Enter";
             confirmButton.Click += ConfirmButton_Click;
-
-            this.Controls.Add(quantityTextBox);
-            this.Controls.Add(confirmButton);
-
-            this.ClientSize = new Size(375, 100);
-            this.StartPosition = FormStartPosition.CenterParent;
-            this.Text = "Enter Quantity";
-
-            this.AcceptButton = confirmButton; // Allow pressing Enter to confirm
+            // 
+            // QuantityForm
+            // 
+            AcceptButton = confirmButton;
+            FormBorderStyle = FormBorderStyle.FixedDialog; // Set the form border style to FixedDialog
+            MaximizeBox = false; // Disable the maximize button
+            ClientSize = new Size(375, 100);
+            Controls.Add(quantityTextBox);
+            Controls.Add(confirmButton);
+            Name = "QuantityForm";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Enter Quantity";
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         private void ConfirmButton_Click(object sender, EventArgs e)

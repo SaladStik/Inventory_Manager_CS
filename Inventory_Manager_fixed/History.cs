@@ -21,6 +21,9 @@ namespace Inventory_Manager
         private DateTime _selectedEndDate;
         private bool _printFullTable;
         private bool _isPrintDialogOpen = false; // Flag to prevent print dialog from opening twice
+        bool isAdmin = UserSession.Role == "Administrator";
+        bool isUser = UserSession.Role == "User";
+        bool isViewer = UserSession.Role == "Viewer";
 
         public History(int productId, DataTable dataTable)
         {
@@ -37,7 +40,18 @@ namespace Inventory_Manager
             InitializeLocationComboBoxColumn();
 
             LoadHistoryDataAsync(productId).Wait();
+
+            // Set the DataGridView and controls to read-only if the user is a viewer
+            if (isViewer)
+            {
+                historyDataGridView.ReadOnly = true;
+                searchHistoryButton.Enabled = true;
+                Print.Enabled = true;
+                startDate.Enabled = true;
+                endDate.Enabled = true;
+            }
         }
+
 
         private void UnsubscribeEventHandlers()
         {
@@ -52,10 +66,15 @@ namespace Inventory_Manager
         {
             searchHistoryButton.Click += SearchHistoryButton_Click;
             Print.Click += Print_Click;
-            historyDataGridView.CellValueChanged += HistoryDataGridView_CellValueChanged;
-            historyDataGridView.EditingControlShowing += HistoryDataGridView_EditingControlShowing;
-            historyDataGridView.CellDoubleClick += HistoryDataGridView_CellDoubleClick;
+
+            if (!isViewer)
+            {
+                historyDataGridView.CellValueChanged += HistoryDataGridView_CellValueChanged;
+                historyDataGridView.EditingControlShowing += HistoryDataGridView_EditingControlShowing;
+                historyDataGridView.CellDoubleClick += HistoryDataGridView_CellDoubleClick;
+            }
         }
+
 
         private void RenameColumns()
         {
@@ -201,6 +220,12 @@ namespace Inventory_Manager
         {
             try
             {
+                if (isViewer)
+                {
+                    e.Control.Enabled = false;
+                    return;
+                }
+
                 if (historyDataGridView.CurrentCell.ColumnIndex == historyDataGridView.Columns["location_name"].Index)
                 {
                     if (e.Control is ComboBox comboBox)
@@ -219,6 +244,7 @@ namespace Inventory_Manager
                 Console.WriteLine(ex);
             }
         }
+
 
         private async void ComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -269,6 +295,8 @@ namespace Inventory_Manager
         {
             try
             {
+                if (isViewer) return;
+
                 if (e.RowIndex >= 0)
                 {
                     bool noteColumnExists = historyDataGridView.Columns.Contains("Note");
@@ -288,6 +316,7 @@ namespace Inventory_Manager
                 MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
 
         private async Task LoadHistoryDataAsync(int productId)
         {

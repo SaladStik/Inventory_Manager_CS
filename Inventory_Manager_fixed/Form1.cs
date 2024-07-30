@@ -42,6 +42,7 @@ namespace Inventory_Manager
         private int _currentScrollRowIndex;
 
 
+
         public Form1()
         {
             InitializeComponent();
@@ -49,6 +50,8 @@ namespace Inventory_Manager
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             SetStyle(ControlStyles.UserPaint, true);
             UpdateStyles();
+
+            SetControlVisibilityForUserRole();
             _dbIntegrator = new DB_Integrator();
 
             // Initialize the refresh timer
@@ -72,8 +75,49 @@ namespace Inventory_Manager
 
             // Clean up temporary directory on application exit
             AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
-
         }
+
+        private void HideAdminTab()
+        {
+            searchTabs.TabPages.Remove(AdminTab);
+        }
+
+
+        private void SetControlVisibilityForUserRole()
+        {
+            bool isAdmin = UserSession.Role == "Administrator";
+            bool isUser = UserSession.Role == "User";
+            bool isViewer = UserSession.Role == "Viewer";
+
+            // Hide the admin tab if the user isn't an admin
+            if (UserSession.Role != "Administrator")
+            {
+                HideAdminTab();
+            }
+
+            // If someone somehow gets in, they won't be able to make changes
+            if (!isAdmin && !isUser) { isViewer = true; }
+
+            // Hide or disable buttons and controls for users
+            quantityUp.Visible = isUser || isAdmin;
+            quantityDown.Visible = isUser || isAdmin;
+            QuantityChangeAmtBox.Visible = isUser || isAdmin;
+            QuantityText.Visible = isUser || isAdmin;
+            selectViaScan.Visible = isUser || isAdmin;
+
+            if (isViewer)
+            {
+                searchTabs.TabPages.Remove(ProductUpdateTab);
+                searchTabs.TabPages.Remove(ProdUpdates2);
+                searchTabs.TabPages.Remove(tabPage3);
+                Product_List.ReadOnly = true;
+            }
+            else
+            {
+                Product_List.ReadOnly = false;
+            }
+        }
+
 
         private void EnableDoubleBuffering()
         {
@@ -96,9 +140,10 @@ namespace Inventory_Manager
         public static string select_Location = "SELECT id FROM location WHERE name = '{0}';";
         public static string update_history_location = "UPDATE history SET id_location = '{0}' WHERE serial_number = '{1}' AND id_product = {2}";
         public static string insert_data_into_history_if_not_exists = @"
-            INSERT INTO history (id_product, id_location, serial_number, date, note)
-            SELECT {0}, {1}, '{2}', '{3}', '{4}'
-            WHERE NOT EXISTS (SELECT * FROM history WHERE serial_number = '{2}')";
+    INSERT INTO history (id_product, id_location, serial_number, date, note)
+    SELECT {0}, {1}, '{2}', '{3}', '{4}'
+    WHERE NOT EXISTS (SELECT * FROM history WHERE serial_number = '{2}')";
+
         public static string search_function = @"
             SELECT p.id, p.model_number, p.alias, p.type, p.quantity, p.barcode, p.require_serial_number, p.image_url, s.name AS supplier, p.supplier_link, p.min_stock, p.bin 
             FROM product p
@@ -132,14 +177,13 @@ namespace Inventory_Manager
             // Unsubscribe from existing event handlers if they are already attached
             Product_List.CellDoubleClick -= Product_List_CellDoubleClick;
             Product_List.DataBindingComplete -= Product_List_DataBindingComplete;
-            Product_List.SelectionChanged -= Product_List_SelectionChanged; // Add this line
+            Product_List.SelectionChanged -= Product_List_SelectionChanged;
             ImageUploadButton.Click -= ImageUploadButton_Click;
             SupplierAddButton.Click -= SupplierAddButton_Click;
             SupplierLinkButton.Click -= SupplierLinkButton_Click;
             AddMinimumStock.Click -= AddMinimumStock_Click;
             MinimumStockTextBox.KeyPress -= MinimumStockTextBox_KeyPress;
             MinimumStockTextBox.TextChanged -= MinimumStockTextBox_TextChanged;
-            SettingsButton.Click -= SettingsButton_Click;
             BinSet.Click -= BinSet_Click;
             LocationNamePrintBox.Click -= LocationNamePrintBox_Click;
             UpdateType.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
@@ -156,14 +200,13 @@ namespace Inventory_Manager
             // Subscribe to event handlers
             Product_List.CellDoubleClick += Product_List_CellDoubleClick;
             Product_List.DataBindingComplete += Product_List_DataBindingComplete;
-            Product_List.SelectionChanged += Product_List_SelectionChanged; // Add this line
+            Product_List.SelectionChanged += Product_List_SelectionChanged;
             ImageUploadButton.Click += ImageUploadButton_Click;
             SupplierAddButton.Click += SupplierAddButton_Click; // Add Supplier Button Click
             SupplierLinkButton.Click += SupplierLinkButton_Click; // Supplier Link Button Click
             AddMinimumStock.Click += AddMinimumStock_Click; // Add Minimum Stock Button Click
             MinimumStockTextBox.KeyPress += MinimumStockTextBox_KeyPress; // Restrict to integers
             MinimumStockTextBox.TextChanged += MinimumStockTextBox_TextChanged; // Handle text changes
-            SettingsButton.Click += SettingsButton_Click; // Add Settings Button Click handler
             BinSet.Click += BinSet_Click; // Add Bin Set Button Click handler
             LocationNamePrintBox.Click += LocationNamePrintBox_Click; // Add Location Name Print Button Click handler
 
@@ -209,15 +252,6 @@ namespace Inventory_Manager
             {
                 printDoc.Print();
             }
-        }
-
-
-
-
-        private void SettingsButton_Click(object sender, EventArgs e)
-        {
-            Settings settingsForm = new Settings();
-            settingsForm.ShowDialog();
         }
 
         private void MinimumStockTextBox_KeyPress(object sender, KeyPressEventArgs e)
@@ -346,8 +380,21 @@ namespace Inventory_Manager
 
             UpdateDecreaseButtonState();
 
+            // Make cells read-only for viewers
+            if (UserSession.Role == "Viewer")
+            {
+                foreach (DataGridViewRow row in Product_List.Rows)
+                {
+                    foreach (DataGridViewCell cell in row.Cells)
+                    {
+                        cell.ReadOnly = true;
+                    }
+                }
+            }
+
             RestoreSearchAndScrollPosition();
         }
+
 
 
 
@@ -409,7 +456,7 @@ namespace Inventory_Manager
             {
                 if (row.DefaultCellStyle.BackColor == Color.White)
                 {
-                    row.DefaultCellStyle.BackColor = Color.Red;
+                    row.DefaultCellStyle.BackColor = Color.Yellow;
                 }
                 else
                 {
@@ -590,6 +637,7 @@ namespace Inventory_Manager
             }
         }
 
+
         private async Task UpdateProductQuantityAsync(bool isIncrease)
         {
             if (Product_List.SelectedRows.Count > 0)
@@ -619,7 +667,7 @@ namespace Inventory_Manager
                     }
                     foreach (string serialNumber in serialNumbers)
                     {
-                        string insertHistory = string.Format(insert_data_into_history_if_not_exists, productId, 1, serialNumber, DateTime.Now.ToString("yyyy-MM-dd"), ""); //default serial number add in creation
+                        string insertHistory = string.Format(insert_data_into_history_if_not_exists, productId, 1, serialNumber, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), ""); //default serial number add in creation
                         await _dbIntegrator.QueryAsync(insertHistory, null);
                     }
                 }
@@ -710,7 +758,7 @@ namespace Inventory_Manager
                 string supplierIdValueString = supplierId.HasValue ? supplierId.Value.ToString() : "NULL";
                 string minStockValueString = minStock.HasValue ? minStock.Value.ToString() : "NULL";
 
-                string productAdd = string.Format(product_add, modelNumber, alias, type, quantity, barcode, requireSerialNumber, supplierIdValueString, supplierLink, minStockValueString, bin);
+                string productAdd = string.Format(product_add, modelNumber, alias, type, quantity, barcode, requireSerialNumber, supplierIdValueString, supplierLink, minStockValueString, bin, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                 object newProductIdObj = await _dbIntegrator.SelectAsync(productAdd, null);
                 int newProductId = Convert.ToInt32(newProductIdObj);
 
@@ -725,7 +773,7 @@ namespace Inventory_Manager
                     }
                     foreach (string serialNumber in serialNumbers)
                     {
-                        string insertHistory = string.Format(insert_data_into_history_if_not_exists, newProductId, 1, serialNumber, DateTime.Now.ToString("yyyy-MM-dd"), "");//default product creation 
+                        string insertHistory = string.Format(insert_data_into_history_if_not_exists, newProductId, 1, serialNumber, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "");
                         await _dbIntegrator.QueryAsync(insertHistory, null);
                     }
                 }
@@ -741,6 +789,7 @@ namespace Inventory_Manager
                 Console.WriteLine(ex);
             }
         }
+
 
         private async void SupplierAddButton_Click(object sender, EventArgs e)
         {
@@ -851,6 +900,8 @@ namespace Inventory_Manager
             DataTable dataTable = await _dbIntegrator.GetDataTableAsync(query, null);
             return dataTable.AsEnumerable().Select(row => new Tuple<int, string>(row.Field<int>("id"), row.Field<string>("name"))).ToList();
         }
+
+
 
         private async Task<List<string>> PromptForSerialNumbers(int count)
         {
@@ -998,12 +1049,6 @@ namespace Inventory_Manager
                 MessageBox.Show("Please select a product to upload an image.");
             }
         }
-
-        private void SettingsButton_Click_1(object sender, EventArgs e)
-        {
-
-        }
-
         private async void QTAuth_Click(object sender, EventArgs e)
         {
             Button button = (Button)sender;
@@ -1279,7 +1324,7 @@ namespace Inventory_Manager
             int labelHeight = _labelConfig.Length;
 
             // Initialize the font with a starting size
-            float fontSize = 25; // Start with a reasonable font size
+            float fontSize = 10; // Start with a reasonable font size
             Font font = new Font("Arial", fontSize);
 
             // Measure the size of the text
@@ -1298,13 +1343,22 @@ namespace Inventory_Manager
             font = new Font("Arial", fontSize);
             textSize = e.Graphics.MeasureString(locationName, font);
 
+            // If the text still doesn't fit, reduce the font size until it fits
+            while (textSize.Width > labelWidth || textSize.Height > labelHeight)
+            {
+                fontSize -= 1;
+                font = new Font("Arial", fontSize);
+                textSize = e.Graphics.MeasureString(locationName, font);
+            }
+
             // Define the position for the text
-            float x = 0; // Fixed position from the left
-            float y = 0; // Fixed position from the top
+            float x = (labelWidth - textSize.Width) / 2; // Center the text horizontally
+            float y = (labelHeight - textSize.Height) / 2; // Center the text vertically
 
             // Draw the location name
             e.Graphics.DrawString(locationName, font, Brushes.Black, new PointF(x, y));
         }
+
 
 
 
@@ -1521,7 +1575,7 @@ namespace Inventory_Manager
                     }
                     foreach (string serialNumber in serialNumbers)
                     {
-                        string insertHistory = string.Format(insert_data_into_history_if_not_exists, productId, 1, serialNumber, DateTime.Now.ToString("yyyy-MM-dd"), "");
+                        string insertHistory = string.Format(insert_data_into_history_if_not_exists, productId, 1, serialNumber, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                         await _dbIntegrator.QueryAsync(insertHistory, null);
                     }
                 }
@@ -1756,6 +1810,43 @@ namespace Inventory_Manager
         {
 
         }
+
+        private void CreateQuickSheets_Click(object sender, EventArgs e)
+        {
+            QuickSheetCreation quickSheetCreationForm = new QuickSheetCreation(_dbIntegrator);
+            quickSheetCreationForm.ShowDialog();
+        }
+
+        private void loadQuickSheet_Click(object sender, EventArgs e)
+        {
+            LoadQuickSheetForm loadQuickSheetForm = new LoadQuickSheetForm(_dbIntegrator);
+            loadQuickSheetForm.ShowDialog();
+        }
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            DeleteQuickSheetForm deleteQuickSheetForm = new DeleteQuickSheetForm(_dbIntegrator);
+            deleteQuickSheetForm.ShowDialog();
+        }
+
+        private void UpdateQuickSheet_Click(object sender, EventArgs e)
+        {
+            using (var updateQuickSheetForm = new UpdateQuickSheetForm(_dbIntegrator))
+            {
+                updateQuickSheetForm.ShowDialog();
+            }
+        }
+
+        private void User_Menu_Button_Click(object sender, EventArgs e)
+        {
+            UserManagement userManagement = new UserManagement(_dbIntegrator);
+            userManagement.ShowDialog();
+        }
+
+        private void Product_List_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
     }
 
     public class CompanyInformation
@@ -1840,7 +1931,7 @@ namespace Inventory_Manager
             return Render(matrix, format, content, null);
         }
 
-        
+         
     }
 
 

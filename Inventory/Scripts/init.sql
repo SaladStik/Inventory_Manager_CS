@@ -56,4 +56,40 @@ INSERT INTO location (name) VALUES ('Stock');
 INSERT INTO supplier (name) VALUES ('Active IS');
 
 
---ALTER TABLE product ADD COLUMN bin VARCHAR(50);
+ALTER TABLE product ADD COLUMN bin VARCHAR(50);
+
+CREATE TABLE quick_sheets (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT
+);
+
+CREATE TABLE quick_sheet_products (
+    quick_sheet_id INT NOT NULL,
+    product_id INT NOT NULL,
+    FOREIGN KEY (quick_sheet_id) REFERENCES quick_sheets(id),
+    FOREIGN KEY (product_id) REFERENCES product(id)
+);
+
+
+CREATE TABLE roles (
+    id SERIAL PRIMARY KEY,
+    role_name VARCHAR(50) UNIQUE NOT NULL
+);
+
+INSERT INTO roles (role_name) VALUES ('Administrator'), ('User'), ('Viewer');
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    role_id INTEGER NOT NULL REFERENCES roles(id)
+);
+
+-- Insert the default admin user with the Administrator role
+ALTER TABLE users ADD COLUMN salt TEXT;
+ALTER TABLE users ADD COLUMN forgot_password BOOLEAN DEFAULT FALSE;
+
+

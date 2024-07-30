@@ -33,28 +33,25 @@ namespace Inventory_Manager
             // promptLabel
             // 
             promptLabel.AutoSize = true;
-            promptLabel.Location = new Point(8, 5);
-            promptLabel.Margin = new Padding(2, 0, 2, 0);
+            promptLabel.Location = new Point(11, 8);
             promptLabel.Name = "promptLabel";
-            promptLabel.Size = new Size(112, 15);
+            promptLabel.Size = new Size(168, 25);
             promptLabel.TabIndex = 0;
             promptLabel.Text = "Enter serial number:";
             // 
             // serialNumberTextBox
             // 
-            serialNumberTextBox.Location = new Point(8, 22);
-            serialNumberTextBox.Margin = new Padding(2);
+            serialNumberTextBox.Location = new Point(11, 37);
             serialNumberTextBox.Name = "serialNumberTextBox";
-            serialNumberTextBox.Size = new Size(253, 23);
+            serialNumberTextBox.Size = new Size(360, 31);
             serialNumberTextBox.TabIndex = 1;
             serialNumberTextBox.KeyPress += serialNumberTextBox_KeyPress;
             // 
             // okButton
             // 
-            okButton.Location = new Point(152, 51);
-            okButton.Margin = new Padding(2);
+            okButton.Location = new Point(217, 85);
             okButton.Name = "okButton";
-            okButton.Size = new Size(52, 28);
+            okButton.Size = new Size(74, 47);
             okButton.TabIndex = 2;
             okButton.Text = "OK";
             okButton.UseVisualStyleBackColor = true;
@@ -62,10 +59,9 @@ namespace Inventory_Manager
             // 
             // cancelButton
             // 
-            cancelButton.Location = new Point(209, 49);
-            cancelButton.Margin = new Padding(2);
+            cancelButton.Location = new Point(299, 82);
             cancelButton.Name = "cancelButton";
-            cancelButton.Size = new Size(52, 30);
+            cancelButton.Size = new Size(74, 50);
             cancelButton.TabIndex = 3;
             cancelButton.Text = "Cancel";
             cancelButton.UseVisualStyleBackColor = true;
@@ -73,16 +69,18 @@ namespace Inventory_Manager
             // 
             // SerialNumberInputForm
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            FormBorderStyle = FormBorderStyle.FixedDialog; // Set the form border style to FixedDialog
+            MaximizeBox = false; // Disable the maximize button
+            AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(274, 82);
+            ClientSize = new Size(391, 137);
             Controls.Add(cancelButton);
             Controls.Add(okButton);
             Controls.Add(serialNumberTextBox);
             Controls.Add(promptLabel);
             Icon = (Icon)resources.GetObject("$this.Icon");
-            Margin = new Padding(2);
             Name = "SerialNumberInputForm";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "Serial Number Input";
             ResumeLayout(false);
             PerformLayout();

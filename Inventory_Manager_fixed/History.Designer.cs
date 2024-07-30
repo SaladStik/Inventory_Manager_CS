@@ -28,24 +28,24 @@ namespace Inventory_Manager
             // historyDataGridView
             // 
             historyDataGridView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            historyDataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            historyDataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
             historyDataGridView.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             historyDataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            historyDataGridView.Location = new Point(20, 97);
-            historyDataGridView.Margin = new Padding(6, 7, 6, 7);
+            historyDataGridView.Location = new Point(14, 58);
+            historyDataGridView.Margin = new Padding(4, 4, 4, 4);
             historyDataGridView.Name = "historyDataGridView";
             historyDataGridView.RowHeadersWidth = 62;
-            historyDataGridView.Size = new Size(1267, 767);
+            historyDataGridView.Size = new Size(887, 460);
             historyDataGridView.TabIndex = 0;
             // 
             // searchHistory
             // 
-            searchHistory.Location = new Point(20, 23);
-            searchHistory.Margin = new Padding(6, 7, 6, 7);
-            searchHistory.MaximumSize = new Size(331, 23);
-            searchHistory.MinimumSize = new Size(331, 23);
+            searchHistory.Location = new Point(14, 14);
+            searchHistory.Margin = new Padding(4, 4, 4, 4);
+            searchHistory.MaximumSize = new Size(233, 23);
+            searchHistory.MinimumSize = new Size(233, 23);
             searchHistory.Name = "searchHistory";
-            searchHistory.Size = new Size(331, 31);
+            searchHistory.Size = new Size(233, 23);
             searchHistory.TabIndex = 1;
             // 
             // searchHistoryButton
@@ -53,11 +53,11 @@ namespace Inventory_Manager
             searchHistoryButton.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             searchHistoryButton.AutoSize = true;
             searchHistoryButton.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            searchHistoryButton.Location = new Point(363, 18);
-            searchHistoryButton.Margin = new Padding(6, 7, 6, 7);
+            searchHistoryButton.Location = new Point(254, 10);
+            searchHistoryButton.Margin = new Padding(4, 4, 4, 4);
             searchHistoryButton.Name = "searchHistoryButton";
-            searchHistoryButton.Padding = new Padding(4, 5, 4, 5);
-            searchHistoryButton.Size = new Size(82, 45);
+            searchHistoryButton.Padding = new Padding(3, 3, 3, 3);
+            searchHistoryButton.Size = new Size(58, 31);
             searchHistoryButton.TabIndex = 2;
             searchHistoryButton.Text = "Search";
             searchHistoryButton.UseVisualStyleBackColor = true;
@@ -65,51 +65,56 @@ namespace Inventory_Manager
             // 
             // Print
             // 
-            Print.Location = new Point(1119, 32);
+            Print.Location = new Point(783, 20);
+            Print.Margin = new Padding(2);
             Print.Name = "Print";
-            Print.Size = new Size(112, 34);
+            Print.Size = new Size(79, 23);
             Print.TabIndex = 3;
             Print.Text = "Print";
             Print.UseVisualStyleBackColor = true;
-            Print.Click += Print_Click; // Add the Click event handler
-                                        // 
-                                        // startDate
-                                        // 
-            startDate.Location = new Point(482, 32);
+            Print.Click += Print_Click;
+            // 
+            // startDate
+            // 
+            startDate.Location = new Point(338, 20);
+            startDate.Margin = new Padding(2);
             startDate.Name = "startDate";
-            startDate.Size = new Size(318, 31);
+            startDate.Size = new Size(224, 23);
             startDate.TabIndex = 4;
             // 
             // endDate
             // 
-            endDate.Location = new Point(813, 32);
+            endDate.Location = new Point(569, 20);
+            endDate.Margin = new Padding(2);
             endDate.Name = "endDate";
-            endDate.Size = new Size(300, 31);
+            endDate.Size = new Size(211, 23);
             endDate.TabIndex = 5;
             // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(482, 4);
+            label1.Location = new Point(338, 2);
+            label1.Margin = new Padding(2, 0, 2, 0);
             label1.Name = "label1";
-            label1.Size = new Size(90, 25);
+            label1.Size = new Size(58, 15);
             label1.TabIndex = 6;
             label1.Text = "Start Date";
             // 
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(813, 4);
+            label2.Location = new Point(569, 2);
+            label2.Margin = new Padding(2, 0, 2, 0);
             label2.Name = "label2";
-            label2.Size = new Size(84, 25);
+            label2.Size = new Size(54, 15);
             label2.TabIndex = 7;
             label2.Text = "End Date";
             // 
             // History
             // 
-            AutoScaleDimensions = new SizeF(10F, 25F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1307, 887);
+            ClientSize = new Size(915, 532);
             Controls.Add(label2);
             Controls.Add(label1);
             Controls.Add(endDate);
@@ -119,8 +124,9 @@ namespace Inventory_Manager
             Controls.Add(searchHistory);
             Controls.Add(historyDataGridView);
             Icon = (Icon)resources.GetObject("$this.Icon");
-            Margin = new Padding(6, 7, 6, 7);
+            Margin = new Padding(4, 4, 4, 4);
             Name = "History";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "History";
             ((System.ComponentModel.ISupportInitialize)historyDataGridView).EndInit();
             ResumeLayout(false);

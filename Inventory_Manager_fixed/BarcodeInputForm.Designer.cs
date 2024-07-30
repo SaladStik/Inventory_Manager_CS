@@ -12,27 +12,40 @@ namespace Inventory_Manager
         {
             barcodeTextBox = new TextBox();
             confirmButton = new Button();
-
+            SuspendLayout();
+            // 
+            // barcodeTextBox
+            // 
             barcodeTextBox.Location = new Point(12, 12);
-            barcodeTextBox.Size = new Size(260, 20);
+            barcodeTextBox.Name = "barcodeTextBox";
             barcodeTextBox.PlaceholderText = "Scan Barcode";
-            
-
+            barcodeTextBox.Size = new Size(352, 23);
+            barcodeTextBox.TabIndex = 0;
+            // 
+            // confirmButton
+            // 
             confirmButton.AutoSize = true;
             confirmButton.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            confirmButton.Location = new Point(100, 50);
-            confirmButton.Size = new Size(75, 23);
+            confirmButton.Location = new Point(162, 41);
+            confirmButton.Name = "confirmButton";
+            confirmButton.Size = new Size(44, 25);
+            confirmButton.TabIndex = 1;
             confirmButton.Text = "Enter";
             confirmButton.Click += ConfirmButton_Click;
-
-            this.Controls.Add(barcodeTextBox);
-            this.Controls.Add(confirmButton);
-
-            this.ClientSize = new Size(375, 100);
-            this.StartPosition = FormStartPosition.CenterParent;
-            this.Text = "Scan Barcode";
-
-            this.AcceptButton = confirmButton; // Allow pressing Enter to confirm
+            // 
+            // BarcodeInputForm
+            // 
+            FormBorderStyle = FormBorderStyle.FixedDialog; // Set the form border style to FixedDialog
+            MaximizeBox = false; // Disable the maximize button
+            AcceptButton = confirmButton;
+            ClientSize = new Size(376, 89);
+            Controls.Add(barcodeTextBox);
+            Controls.Add(confirmButton);
+            Name = "BarcodeInputForm";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Scan Barcode";
+            ResumeLayout(false);
+            PerformLayout();
         }
     }
 }
