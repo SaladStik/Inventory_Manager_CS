@@ -17,6 +17,10 @@ namespace Inventory_Manager
         {
             InitializeComponent();
             _dbIntegrator = new DB_Integrator();
+
+            // Attach the KeyDown event handler to the text boxes
+            Username_TextBox.KeyDown += new KeyEventHandler(TextBox_KeyDown);
+            Password_TextBox.KeyDown += new KeyEventHandler(TextBox_KeyDown);
         }
 
         private async void SignIn_Button_Click(object sender, EventArgs e)
@@ -26,6 +30,9 @@ namespace Inventory_Manager
 
             if (await ValidateUserAsync(username, password))
             {
+                // Reset forgot_password flag if it was set
+                await ResetForgotPasswordFlagAsync(username);
+
                 // Check if the password is "welcome"
                 if (password == "welcome")
                 {
@@ -44,6 +51,7 @@ namespace Inventory_Manager
                 }
 
                 // Save the authenticated user details
+                UserSession.UserId = await GetUserIdAsync(username);
                 UserSession.Username = username;
                 UserSession.Role = await GetUserRoleAsync(username);
 
@@ -58,6 +66,21 @@ namespace Inventory_Manager
                 ErrorMessage_Label.Text = "Invalid username or password.";
                 ErrorMessage_Label.Visible = true;
             }
+        }
+
+        private async Task<int> GetUserIdAsync(string username)
+        {
+            string query = "SELECT id FROM users WHERE LOWER(username) = @username"; // Convert username to lowercase in the query
+            var parameters = new Dictionary<string, object> { { "@username", username } };
+
+            DataTable userTable = await _dbIntegrator.GetDataTableWithParametersAsync(query, parameters);
+
+            if (userTable.Rows.Count > 0)
+            {
+                return Convert.ToInt32(userTable.Rows[0]["id"]);
+            }
+
+            throw new Exception("User ID not found.");
         }
 
         private async Task<bool> ValidateUserAsync(string username, string password)
@@ -134,7 +157,29 @@ namespace Inventory_Manager
 
             await _dbIntegrator.QueryWithParametersAsync(query, parameters);
 
-            MessageBox.Show("A request to reset your password has been sent.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("A request to reset your password has been sent.\nPlease contact your administrator.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private async Task ResetForgotPasswordFlagAsync(string username)
+        {
+            string query = "UPDATE users SET forgot_password = @forgot_password WHERE LOWER(username) = @username"; // Convert username to lowercase in the query
+            var parameters = new Dictionary<string, object>
+            {
+                { "@forgot_password", false },
+                { "@username", username }
+            };
+
+            await _dbIntegrator.QueryWithParametersAsync(query, parameters);
+        }
+
+        private void TextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                SignIn_Button_Click(this, new EventArgs());
+                e.Handled = true; // Mark the event as handled
+                e.SuppressKeyPress = true; // Suppress the default behavior of the Enter key
+            }
         }
     }
 }

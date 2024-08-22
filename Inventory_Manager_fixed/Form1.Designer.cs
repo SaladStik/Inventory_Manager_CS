@@ -3,7 +3,7 @@
     partial class Form1
     {
         private System.ComponentModel.IContainer components = null;
-        private System.Windows.Forms.DataGridView Product_List;
+        private BufferedDataGridView Product_List;
         private System.Windows.Forms.TextBox searchTextBox;
         private System.Windows.Forms.Button searchButton;
         private System.Windows.Forms.Button addButton;
@@ -32,7 +32,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            Product_List = new DataGridView();
+            Product_List = new BufferedDataGridView();
             searchTextBox = new TextBox();
             searchButton = new Button();
             addButton = new Button();
@@ -50,6 +50,9 @@
             quantityUp = new Button();
             QuantityText = new Label();
             quantityDown = new Button();
+            JobTab = new TabPage();
+            button2 = new Button();
+            Begin_Job = new Button();
             ProductUpdateTab = new TabPage();
             BinSet = new Button();
             label1 = new Label();
@@ -104,6 +107,7 @@
             ((System.ComponentModel.ISupportInitialize)Product_List).BeginInit();
             searchTabs.SuspendLayout();
             tabPage1.SuspendLayout();
+            JobTab.SuspendLayout();
             ProductUpdateTab.SuspendLayout();
             ProdUpdates2.SuspendLayout();
             tabPage3.SuspendLayout();
@@ -205,6 +209,7 @@
             // searchTabs
             // 
             searchTabs.Controls.Add(tabPage1);
+            searchTabs.Controls.Add(JobTab);
             searchTabs.Controls.Add(ProductUpdateTab);
             searchTabs.Controls.Add(ProdUpdates2);
             searchTabs.Controls.Add(tabPage3);
@@ -239,7 +244,7 @@
             // 
             loadQuickSheet.AutoSize = true;
             loadQuickSheet.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            loadQuickSheet.Location = new Point(5, 51);
+            loadQuickSheet.Location = new Point(8, 49);
             loadQuickSheet.Margin = new Padding(2);
             loadQuickSheet.Name = "loadQuickSheet";
             loadQuickSheet.Size = new Size(106, 25);
@@ -287,7 +292,7 @@
             // 
             quantityUp.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             quantityUp.AutoSize = true;
-            quantityUp.BackColor = Color.Lime;
+            quantityUp.BackColor = Color.Transparent;
             quantityUp.Location = new Point(402, 17);
             quantityUp.Name = "quantityUp";
             quantityUp.Padding = new Padding(2);
@@ -311,7 +316,7 @@
             // 
             quantityDown.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             quantityDown.AutoSize = true;
-            quantityDown.BackColor = Color.Crimson;
+            quantityDown.BackColor = Color.Transparent;
             quantityDown.Location = new Point(441, 18);
             quantityDown.Name = "quantityDown";
             quantityDown.Padding = new Padding(2);
@@ -320,6 +325,44 @@
             quantityDown.Text = "-";
             quantityDown.UseVisualStyleBackColor = false;
             quantityDown.Click += decreaseQuantityButton_Click;
+            // 
+            // JobTab
+            // 
+            JobTab.Controls.Add(button2);
+            JobTab.Controls.Add(Begin_Job);
+            JobTab.Location = new Point(4, 24);
+            JobTab.Name = "JobTab";
+            JobTab.Padding = new Padding(3);
+            JobTab.Size = new Size(883, 81);
+            JobTab.TabIndex = 6;
+            JobTab.Text = "Jobs";
+            JobTab.UseVisualStyleBackColor = true;
+            // 
+            // button2
+            // 
+            button2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            button2.AutoSize = true;
+            button2.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            button2.Location = new Point(6, 37);
+            button2.Name = "button2";
+            button2.Size = new Size(81, 25);
+            button2.TabIndex = 16;
+            button2.Text = "Update Jobs";
+            button2.UseVisualStyleBackColor = true;
+            button2.Click += button2_Click;
+            // 
+            // Begin_Job
+            // 
+            Begin_Job.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            Begin_Job.AutoSize = true;
+            Begin_Job.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            Begin_Job.Location = new Point(6, 6);
+            Begin_Job.Name = "Begin_Job";
+            Begin_Job.Size = new Size(68, 25);
+            Begin_Job.TabIndex = 15;
+            Begin_Job.Text = "Begin Job";
+            Begin_Job.UseVisualStyleBackColor = true;
+            Begin_Job.Click += Begin_Job_Click;
             // 
             // ProductUpdateTab
             // 
@@ -472,7 +515,7 @@
             // 
             // ImageUploadButton
             // 
-            ImageUploadButton.BackColor = Color.DarkGray;
+            ImageUploadButton.BackColor = Color.Transparent;
             ImageUploadButton.Location = new Point(4, 4);
             ImageUploadButton.Margin = new Padding(2);
             ImageUploadButton.Name = "ImageUploadButton";
@@ -953,6 +996,8 @@
             searchTabs.ResumeLayout(false);
             tabPage1.ResumeLayout(false);
             tabPage1.PerformLayout();
+            JobTab.ResumeLayout(false);
+            JobTab.PerformLayout();
             ProductUpdateTab.ResumeLayout(false);
             ProductUpdateTab.PerformLayout();
             ProdUpdates2.ResumeLayout(false);
@@ -1019,5 +1064,8 @@
         private Button button1;
         private Button UpdateQuickSheet;
         private Button User_Menu_Button;
+        private TabPage JobTab;
+        private Button Begin_Job;
+        private Button button2;
     }
 }

@@ -20,7 +20,7 @@
             addProductButton = new Button();
             productComboBox = new ComboBox();
             productSearchTextBox = new TextBox();
-            productDataGridView = new DataGridView();
+            productDataGridView = new BufferedDataGridView();
             saveButton = new Button();
             ((System.ComponentModel.ISupportInitialize)productDataGridView).BeginInit();
             SuspendLayout();
@@ -111,7 +111,7 @@
         private System.Windows.Forms.Button addProductButton;
         private System.Windows.Forms.ComboBox productComboBox;
         private System.Windows.Forms.TextBox productSearchTextBox;
-        private System.Windows.Forms.DataGridView productDataGridView;
+        private BufferedDataGridView productDataGridView;
         private System.Windows.Forms.Button saveButton;
     }
 }

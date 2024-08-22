@@ -40,8 +40,8 @@ namespace Inventory_Manager
         public LabelConfig _labelConfig; // Label configuration object
         private string _currentSearchTerm;
         private int _currentScrollRowIndex;
-
-
+        private int _horizontalScrollPosition;
+        private ContextMenuStrip _contextMenu;
 
         public Form1()
         {
@@ -50,9 +50,10 @@ namespace Inventory_Manager
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             SetStyle(ControlStyles.UserPaint, true);
             UpdateStyles();
-
             SetControlVisibilityForUserRole();
+            InitializeContextMenu();
             _dbIntegrator = new DB_Integrator();
+            Product_List.CellMouseDown += Product_List_CellMouseDown;
 
             // Initialize the refresh timer
             _refreshTimer = new System.Windows.Forms.Timer();
@@ -76,7 +77,13 @@ namespace Inventory_Manager
             // Clean up temporary directory on application exit
             AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
         }
-
+        private void InitializeContextMenu()
+        {
+            _contextMenu = new ContextMenuStrip();
+            var openLogMenuItem = new ToolStripMenuItem("Open Log");
+            openLogMenuItem.Click += OpenLogMenuItem_Click;
+            _contextMenu.Items.Add(openLogMenuItem);
+        }
         private void HideAdminTab()
         {
             searchTabs.TabPages.Remove(AdminTab);
@@ -171,6 +178,12 @@ namespace Inventory_Manager
         public static string update_supplier_link = "UPDATE product SET supplier_link = '{0}' WHERE id = {1};";
         public static string update_bin = "UPDATE product SET bin = '{0}' WHERE id = {1};";
         public static string update_require_serial_number = "UPDATE product SET require_serial_number = {0} WHERE id = {1};";
+        public static string insert_log = @"
+    INSERT INTO the_log (event_id, users_id, product_id, date, previous_value, new_value, field_updated)
+    VALUES ('{0}', {1}, {2}, '{3}', '{4}', '{5}', '{6}')
+";
+
+
 
         private async void Form1_Load(object sender, EventArgs e)
         {
@@ -289,9 +302,21 @@ namespace Inventory_Manager
 
                 try
                 {
+                    // Fetch the current minimum stock value from the database
+                    string currentMinStockQuery = $"SELECT min_stock FROM product WHERE id = {productId}";
+                    object result = await _dbIntegrator.SelectAsync(currentMinStockQuery, null);
+                    string currentMinStock = result != DBNull.Value ? result.ToString() : string.Empty;
+
+                    // Update the minimum stock value in the database
                     string query = string.Format(update_minimum_stock, minStockValue, productId);
                     await _dbIntegrator.QueryAsync(query, null);
                     MessageBox.Show("Minimum stock value updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                    // Log the minimum stock update
+                    string logEventId = "E001"; // Event ID updates
+                    string logQuery = string.Format(insert_log, logEventId, UserSession.UserId, productId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), currentMinStock, minStockValue.ToString(), "min_stock");
+                    await _dbIntegrator.QueryAsync(logQuery, null);
+
                     await LoadDataGridAsync(productId); // Refresh the DataGridView and reselect the row
                 }
                 catch (Exception ex)
@@ -305,6 +330,7 @@ namespace Inventory_Manager
                 MessageBox.Show("Please select a product.");
             }
         }
+
 
         private async void RefreshTimer_Tick(object sender, EventArgs e)
         {
@@ -667,13 +693,28 @@ namespace Inventory_Manager
                     }
                     foreach (string serialNumber in serialNumbers)
                     {
-                        string insertHistory = string.Format(insert_data_into_history_if_not_exists, productId, 1, serialNumber, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), ""); //default serial number add in creation
+                        string insertHistory = string.Format(insert_data_into_history_if_not_exists, productId, 1, serialNumber, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "");
                         await _dbIntegrator.QueryAsync(insertHistory, null);
                     }
                 }
 
+                string oldQuantityQuery = $"SELECT quantity FROM product WHERE id = {productId}";
+                object oldQuantityResult = await _dbIntegrator.SelectAsync(oldQuantityQuery, null);
+                int oldQuantity = Convert.ToInt32(oldQuantityResult);
+
                 string query = string.Format(updateQuantity, quantityChange, productId);
                 await _dbIntegrator.QueryAsync(query, null);
+
+                // Determine event type based on increase or decrease
+                string eventId = isIncrease ? "E002" : "E004";
+
+                // Log the quantity change event
+                string newQuantityQuery = $"SELECT quantity FROM product WHERE id = {productId}";
+                object newQuantityResult = await _dbIntegrator.SelectAsync(newQuantityQuery, null);
+                int newQuantity = Convert.ToInt32(newQuantityResult);
+
+                string logQuantityChangeEvent = string.Format(insert_log, eventId, UserSession.UserId, productId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), oldQuantity.ToString(), newQuantity.ToString(), "quantity");
+                await _dbIntegrator.QueryAsync(logQuantityChangeEvent, null);
 
                 await LoadDataGridAsync(productId); // Refresh the DataGridView and reselect the row
             }
@@ -682,6 +723,8 @@ namespace Inventory_Manager
                 MessageBox.Show("Please select a product.");
             }
         }
+
+
 
         private async void addLocationButton_Click(object sender, EventArgs e)
         {
@@ -713,14 +756,14 @@ namespace Inventory_Manager
         {
             string modelNumber = modelNumberTextBox.Text.Trim();
             string alias = productAlias.Text.Trim();
-            string type = typeComboBox.Text.Trim(); // Use ComboBox for type
+            string type = typeComboBox.Text.Trim();
             int quantity;
             string barcode = barcodeTextBox.Text.Trim();
             bool requireSerialNumber = requireSerialNumberCheckBox.Checked;
-            string supplier = "";
-            string supplierLink = "";
+            string supplier = supplierSelectionBox.Text.Trim();
+            string supplierLink = supplierLinkBox.Text.Trim();
             int? minStock = null;
-            string bin = "";
+            string bin = BinTextBox.Text.Trim();
 
             if (string.IsNullOrEmpty(modelNumber) || string.IsNullOrEmpty(type) || !int.TryParse(quantityTextBox.Text.Trim(), out quantity) || string.IsNullOrEmpty(barcode))
             {
@@ -758,7 +801,7 @@ namespace Inventory_Manager
                 string supplierIdValueString = supplierId.HasValue ? supplierId.Value.ToString() : "NULL";
                 string minStockValueString = minStock.HasValue ? minStock.Value.ToString() : "NULL";
 
-                string productAdd = string.Format(product_add, modelNumber, alias, type, quantity, barcode, requireSerialNumber, supplierIdValueString, supplierLink, minStockValueString, bin, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                string productAdd = string.Format(product_add, modelNumber, alias, type, quantity, barcode, requireSerialNumber, supplierIdValueString, supplierLink, minStockValueString, bin);
                 object newProductIdObj = await _dbIntegrator.SelectAsync(productAdd, null);
                 int newProductId = Convert.ToInt32(newProductIdObj);
 
@@ -778,6 +821,10 @@ namespace Inventory_Manager
                     }
                 }
 
+                // Log the create event
+                string logCreateEvent = string.Format(insert_log, "E003", UserSession.UserId, newProductId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "NULL", modelNumber, "model_number");
+                await _dbIntegrator.QueryAsync(logCreateEvent, null);
+
                 await LoadDataGridAsync(); // Refresh the DataGridView
                 await LoadTypesAsync(); // Reload the types in ComboBox
                 MessageBox.Show("Product added successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -789,6 +836,44 @@ namespace Inventory_Manager
                 Console.WriteLine(ex);
             }
         }
+
+
+        private async void deleteButton_Click(object sender, EventArgs e)
+        {
+            if (Product_List.SelectedRows.Count > 0)
+            {
+                int productId = Convert.ToInt32(Product_List.SelectedRows[0].Cells["id"].Value);
+                string modelNumber = Product_List.SelectedRows[0].Cells["model_number"].Value.ToString();
+                DialogResult result = MessageBox.Show("Are you sure you want to delete this product?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (result == DialogResult.Yes)
+                {
+                    try
+                    {
+                        string deleteQuery = $"DELETE FROM product WHERE id = {productId}";
+                        await _dbIntegrator.QueryAsync(deleteQuery, null);
+
+                        // Log the delete event
+                        string logDeleteEvent = string.Format(insert_log, "E004", UserSession.UserId, productId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), modelNumber, "NULL", "model_number");
+                        await _dbIntegrator.QueryAsync(logDeleteEvent, null);
+
+                        await LoadDataGridAsync(); // Refresh the DataGridView
+                        MessageBox.Show("Product deleted successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Console.WriteLine(ex);
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select a product to delete.");
+            }
+        }
+
+
+
 
 
         private async void SupplierAddButton_Click(object sender, EventArgs e)
@@ -824,8 +909,18 @@ namespace Inventory_Manager
                 if (Product_List.SelectedRows.Count > 0)
                 {
                     int productId = Convert.ToInt32(Product_List.SelectedRows[0].Cells["id"].Value);
+                    string oldSupplierQuery = $"SELECT supplier_id FROM product WHERE id = {productId}";
+                    object oldSupplierResult = await _dbIntegrator.SelectAsync(oldSupplierQuery, null);
+                    int? oldSupplierId = oldSupplierResult != DBNull.Value ? Convert.ToInt32(oldSupplierResult) : (int?)null;
+
                     string associateQuery = string.Format(associate_product_supplier, supplierId, productId);
                     await _dbIntegrator.QueryAsync(associateQuery, null);
+
+                    // Log the supplier association event
+                    string oldSupplierName = oldSupplierId.HasValue ? (await _dbIntegrator.SelectAsync($"SELECT name FROM supplier WHERE id = {oldSupplierId}", null)).ToString() : "NULL";
+                    string logSupplierAssociationEvent = string.Format(insert_log, "E001", UserSession.UserId, productId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), oldSupplierName, supplierName, "supplier");
+                    await _dbIntegrator.QueryAsync(logSupplierAssociationEvent, null);
+
                     MessageBox.Show("Supplier associated with the selected product successfully.");
                     await LoadDataGridAsync(productId); // Refresh the DataGridView and reselect the row
                 }
@@ -844,6 +939,7 @@ namespace Inventory_Manager
                 Console.WriteLine(ex);
             }
         }
+
 
         private async void SupplierLinkButton_Click(object sender, EventArgs e)
         {
@@ -875,24 +971,38 @@ namespace Inventory_Manager
             if (Product_List.SelectedRows.Count > 0)
             {
                 int productId = Convert.ToInt32(Product_List.SelectedRows[0].Cells["id"].Value);
-                string bin = BinTextBox.Text.Trim();
+                string newBin = BinTextBox.Text.Trim();
 
-                if (string.IsNullOrEmpty(bin))
+                if (string.IsNullOrEmpty(newBin))
                 {
                     MessageBox.Show("Please enter a valid bin value.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
-                string query = string.Format(update_bin, bin, productId);
-                await _dbIntegrator.QueryAsync(query, null);
+                // Fetch the current bin value from the database
+                string currentBinQuery = $"SELECT bin FROM product WHERE id = {productId}";
+                object result = await _dbIntegrator.SelectAsync(currentBinQuery, null);
+                string currentBin = result != DBNull.Value ? result.ToString() : string.Empty;
+
+                // Update the bin value in the database
+                string updateQuery = string.Format(update_bin, newBin, productId);
+                await _dbIntegrator.QueryAsync(updateQuery, null);
                 MessageBox.Show("Bin value updated successfully.");
-                await LoadDataGridAsync(productId); // Refresh the DataGridView and reselect the row
+
+                // Log the bin update
+                string logEventId = "E001"; // Event ID for bin updates
+                string logQuery = string.Format(insert_log, logEventId, UserSession.UserId, productId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), currentBin, newBin, "bin");
+                await _dbIntegrator.QueryAsync(logQuery, null);
+
+                // Refresh the DataGridView and reselect the row
+                await LoadDataGridAsync(productId);
             }
             else
             {
                 MessageBox.Show("Please select a product.");
             }
         }
+
 
         private async Task<List<Tuple<int, string>>> GetLocationsAsync()
         {
@@ -1398,6 +1508,10 @@ namespace Inventory_Manager
 
                         MessageBox.Show("Serial number requirement removed successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         await LoadDataGridAsync(productId); // Refresh the DataGridView and reselect the row
+
+                        // Log the update event
+                        string logUpdateEvent = string.Format(insert_log, "E001", UserSession.UserId, productId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "Enabled", "Disabled", "Serial Number Requirement");
+                        await _dbIntegrator.QueryAsync(logUpdateEvent, null);
                     }
                     catch (Exception ex)
                     {
@@ -1444,6 +1558,10 @@ namespace Inventory_Manager
 
                         MessageBox.Show("Serial number requirement enabled successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         await LoadDataGridAsync(productId); // Refresh the DataGridView and reselect the row
+
+                        // Log the update event
+                        string logUpdateEvent = string.Format(insert_log, "E001", UserSession.UserId, productId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "Disabled", "Enabled", "Serial Number Requirement");
+                        await _dbIntegrator.QueryAsync(logUpdateEvent, null);
                     }
                     catch (Exception ex)
                     {
@@ -1484,16 +1602,18 @@ namespace Inventory_Manager
 
                         if (dataTable.Rows.Count > 0)
                         {
-                            // Show the confirmation dialog
+                            var productRow = dataTable.Rows[0];
+                            string alias = productRow["alias"].ToString(); // Get the alias instead of the barcode
+
+                            // Show the confirmation dialog with the alias
                             var confirmResult = MessageBox.Show(
-                                $"Is this the correct barcode: {scannedBarcode}?",
-                                "Confirm Barcode",
+                                $"Is this the correct product: {alias}?",
+                                "Confirm Product",
                                 MessageBoxButtons.YesNo);
 
                             if (confirmResult == DialogResult.Yes)
                             {
                                 // Handle adding or removing stock
-                                var productRow = dataTable.Rows[0];
                                 bool requireSerialNumber = Convert.ToBoolean(productRow["require_serial_number"]);
 
                                 if (requireSerialNumber)
@@ -1557,14 +1677,16 @@ namespace Inventory_Manager
             }
         }
 
+
         private async Task UpdateProductQuantityAsync(bool isIncrease, int quantity, string barcode, bool requireSerialNumber)
         {
-            string query = $"SELECT id FROM product WHERE barcode = '{barcode}'";
+            string query = $"SELECT id, quantity FROM product WHERE barcode = '{barcode}'";
             DataTable dataTable = await _dbIntegrator.GetDataTableAsync(query, null);
 
             if (dataTable.Rows.Count > 0)
             {
                 int productId = Convert.ToInt32(dataTable.Rows[0]["id"]);
+                int oldQuantity = Convert.ToInt32(dataTable.Rows[0]["quantity"]);
 
                 if (requireSerialNumber)
                 {
@@ -1575,7 +1697,7 @@ namespace Inventory_Manager
                     }
                     foreach (string serialNumber in serialNumbers)
                     {
-                        string insertHistory = string.Format(insert_data_into_history_if_not_exists, productId, 1, serialNumber, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                        string insertHistory = string.Format(insert_data_into_history_if_not_exists, productId, 1, serialNumber, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "");
                         await _dbIntegrator.QueryAsync(insertHistory, null);
                     }
                 }
@@ -1588,9 +1710,16 @@ namespace Inventory_Manager
                 string updateQuery = string.Format(updateQuantity, quantity, productId);
                 await _dbIntegrator.QueryAsync(updateQuery, null);
 
+                // Log the quantity change
+                int newQuantity = oldQuantity + quantity;
+                string logEventId = isIncrease ? "E002" : "E004"; // Event ID for increase or decrease
+                string logQuantityChangeEvent = string.Format(insert_log, logEventId, UserSession.UserId, productId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), oldQuantity.ToString(), newQuantity.ToString(), "quantity");
+                await _dbIntegrator.QueryAsync(logQuantityChangeEvent, null);
+
                 await LoadDataGridAsync(productId); // Refresh the DataGridView and reselect the row
             }
         }
+
 
         private async Task LoadTypesIntoUpdateTypeComboBoxAsync()
         {
@@ -1618,6 +1747,7 @@ namespace Inventory_Manager
             {
                 int productId = Convert.ToInt32(Product_List.SelectedRows[0].Cells["id"].Value);
                 string newAlias = AliasText.Text.Trim();
+                string oldAlias = Product_List.SelectedRows[0].Cells["alias"].Value.ToString();
 
                 if (string.IsNullOrEmpty(newAlias))
                 {
@@ -1627,6 +1757,11 @@ namespace Inventory_Manager
 
                 string query = $"UPDATE product SET alias = '{newAlias}' WHERE id = {productId}";
                 await _dbIntegrator.QueryAsync(query, null);
+
+                // Log the update event
+                string logUpdateEvent = string.Format(insert_log, "E001", UserSession.UserId, productId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), oldAlias, newAlias, "alias");
+                await _dbIntegrator.QueryAsync(logUpdateEvent, null);
+
                 MessageBox.Show("Alias updated successfully.");
                 await LoadDataGridAsync(productId); // Refresh the DataGridView and reselect the row
             }
@@ -1636,12 +1771,14 @@ namespace Inventory_Manager
             }
         }
 
+
         private async void setModelNum_Click(object sender, EventArgs e)
         {
             if (Product_List.SelectedRows.Count > 0)
             {
                 int productId = Convert.ToInt32(Product_List.SelectedRows[0].Cells["id"].Value);
                 string newModelNum = ModelNumText.Text.Trim();
+                string oldModelNum = Product_List.SelectedRows[0].Cells["model_number"].Value.ToString();
 
                 if (string.IsNullOrEmpty(newModelNum))
                 {
@@ -1651,6 +1788,11 @@ namespace Inventory_Manager
 
                 string query = $"UPDATE product SET model_number = '{newModelNum}' WHERE id = {productId}";
                 await _dbIntegrator.QueryAsync(query, null);
+
+                // Log the update event
+                string logUpdateEvent = string.Format(insert_log, "E001", UserSession.UserId, productId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), oldModelNum, newModelNum, "model_number");
+                await _dbIntegrator.QueryAsync(logUpdateEvent, null);
+
                 MessageBox.Show("Model number updated successfully.");
                 await LoadDataGridAsync(productId); // Refresh the DataGridView and reselect the row
             }
@@ -1666,6 +1808,7 @@ namespace Inventory_Manager
             {
                 int productId = Convert.ToInt32(Product_List.SelectedRows[0].Cells["id"].Value);
                 string newBarcode = BarcodeText.Text.Trim();
+                string oldBarcode = Product_List.SelectedRows[0].Cells["barcode"].Value.ToString();
 
                 if (string.IsNullOrEmpty(newBarcode))
                 {
@@ -1675,6 +1818,11 @@ namespace Inventory_Manager
 
                 string query = $"UPDATE product SET barcode = '{newBarcode}' WHERE id = {productId}";
                 await _dbIntegrator.QueryAsync(query, null);
+
+                // Log the update event
+                string logUpdateEvent = string.Format(insert_log, "E001", UserSession.UserId, productId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), oldBarcode, newBarcode, "barcode");
+                await _dbIntegrator.QueryAsync(logUpdateEvent, null);
+
                 MessageBox.Show("Barcode updated successfully.");
                 await LoadDataGridAsync(productId); // Refresh the DataGridView and reselect the row
             }
@@ -1690,6 +1838,7 @@ namespace Inventory_Manager
             {
                 int productId = Convert.ToInt32(Product_List.SelectedRows[0].Cells["id"].Value);
                 string newType = UpdateType.Text.Trim();
+                string oldType = Product_List.SelectedRows[0].Cells["type"].Value.ToString();
 
                 if (string.IsNullOrEmpty(newType))
                 {
@@ -1699,6 +1848,11 @@ namespace Inventory_Manager
 
                 string query = $"UPDATE product SET type = '{newType}' WHERE id = {productId}";
                 await _dbIntegrator.QueryAsync(query, null);
+
+                // Log the update event
+                string logUpdateEvent = string.Format(insert_log, "E001", UserSession.UserId, productId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), oldType, newType, "type");
+                await _dbIntegrator.QueryAsync(logUpdateEvent, null);
+
                 MessageBox.Show("Type updated successfully.");
                 await LoadDataGridAsync(productId); // Refresh the DataGridView and reselect the row
             }
@@ -1775,13 +1929,46 @@ namespace Inventory_Manager
             }
         }
 
+        private void Product_List_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right && e.RowIndex >= 0)
+            {
+                Product_List.ClearSelection();
+                Product_List.Rows[e.RowIndex].Selected = true;
+                _contextMenu.Show(Cursor.Position);
+            }
+        }
+
+        private void OpenLogMenuItem_Click(object sender, EventArgs e)
+        {
+            if (UserSession.Role == "Administrator")
+            {
+                if (Product_List.SelectedRows.Count > 0)
+                {
+                    int productId = Convert.ToInt32(Product_List.SelectedRows[0].Cells["id"].Value);
+                    TheLog logForm = new TheLog(productId);
+                    logForm.Show();
+                }
+                else
+                {
+                    MessageBox.Show("Please select a product.");
+                }
+            }
+            else
+            {
+                MessageBox.Show("You do not have permission to view the log.");
+            }
+        }
+
         private void StoreCurrentSearchAndScrollPosition()
         {
             _currentSearchTerm = searchTextBox.Text.Trim();
+            _horizontalScrollPosition = Product_List.HorizontalScrollingOffset;
 
             if (Product_List.FirstDisplayedScrollingRowIndex >= 0)
             {
                 _currentScrollRowIndex = Product_List.FirstDisplayedScrollingRowIndex;
+                
             }
             else
             {
@@ -1803,6 +1990,11 @@ namespace Inventory_Manager
             if (_currentScrollRowIndex >= 0 && _currentScrollRowIndex < Product_List.Rows.Count)
             {
                 Product_List.FirstDisplayedScrollingRowIndex = _currentScrollRowIndex;
+            }
+
+            if (_horizontalScrollPosition >= 0)
+            {
+                Product_List.HorizontalScrollingOffset = _horizontalScrollPosition;
             }
         }
 
@@ -1847,6 +2039,42 @@ namespace Inventory_Manager
         {
 
         }
+
+        private void Begin_Job_Click(object sender, EventArgs e)
+        {
+            JobCreation jobCreationForm = new JobCreation(_dbIntegrator);
+            jobCreationForm.ShowDialog();
+
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            LoadJobs loadJobsForm = new LoadJobs(_dbIntegrator);
+            loadJobsForm.Show();
+        }
+
+        private async Task LogUserLoginAsync(int userId)
+        {
+            string eventId = "E007"; // Event ID for user login
+            string query = string.Format(insert_log, eventId, userId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            await _dbIntegrator.QueryAsync(query, null);
+        }
+
+        private async Task LogLabelPrintingAsync(int productId)
+        {
+            string eventId = "E006"; // Event ID for label printing
+            string query = string.Format(insert_log, eventId, UserSession.UserId, productId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            await _dbIntegrator.QueryAsync(query, null);
+        }
+        private async Task LogProductUpdateAsync(int productId, string fieldUpdated, string previousValue, string newValue)
+        {
+            string eventId = "E001"; // Event ID for product updates
+            string query = string.Format(insert_log, eventId, UserSession.UserId, productId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), previousValue, newValue, fieldUpdated);
+            await _dbIntegrator.QueryAsync(query, null);
+        }
+
+
+
     }
 
     public class CompanyInformation

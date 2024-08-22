@@ -106,7 +106,7 @@ namespace Inventory_Manager
 
             await CreateUserAsync(username, password, firstName, lastName, roleId);
 
-            MessageBox.Show("User created successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("User created successfully.\nThe password is 'welcome' they will be prompted to change it upon signing in. ", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
             await LoadUsersAsync(); // Reload users
         }
 

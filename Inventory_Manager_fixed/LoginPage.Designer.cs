@@ -53,7 +53,7 @@
             pictureBox1.ErrorImage = (Image)resources.GetObject("pictureBox1.ErrorImage");
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
             pictureBox1.Location = new Point(8, 7);
-            pictureBox1.Margin = new Padding(2, 2, 2, 2);
+            pictureBox1.Margin = new Padding(2);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(176, 146);
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
@@ -85,7 +85,7 @@
             // Username_TextBox
             // 
             Username_TextBox.Location = new Point(195, 27);
-            Username_TextBox.Margin = new Padding(2, 2, 2, 2);
+            Username_TextBox.Margin = new Padding(2);
             Username_TextBox.Name = "Username_TextBox";
             Username_TextBox.PlaceholderText = "Username";
             Username_TextBox.Size = new Size(202, 23);
@@ -94,7 +94,7 @@
             // Password_TextBox
             // 
             Password_TextBox.Location = new Point(195, 67);
-            Password_TextBox.Margin = new Padding(2, 2, 2, 2);
+            Password_TextBox.Margin = new Padding(2);
             Password_TextBox.Name = "Password_TextBox";
             Password_TextBox.PlaceholderText = "Password";
             Password_TextBox.Size = new Size(202, 23);
@@ -107,7 +107,7 @@
             SignIn_Button.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             SignIn_Button.Font = new Font("Segoe UI", 11F);
             SignIn_Button.Location = new Point(195, 94);
-            SignIn_Button.Margin = new Padding(2, 2, 2, 2);
+            SignIn_Button.Margin = new Padding(2);
             SignIn_Button.Name = "SignIn_Button";
             SignIn_Button.Size = new Size(64, 30);
             SignIn_Button.TabIndex = 5;
@@ -121,7 +121,7 @@
             ForgotPassword_Button.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             ForgotPassword_Button.Font = new Font("Segoe UI", 11F);
             ForgotPassword_Button.Location = new Point(269, 94);
-            ForgotPassword_Button.Margin = new Padding(2, 2, 2, 2);
+            ForgotPassword_Button.Margin = new Padding(2);
             ForgotPassword_Button.Name = "ForgotPassword_Button";
             ForgotPassword_Button.Size = new Size(128, 30);
             ForgotPassword_Button.TabIndex = 6;
@@ -154,7 +154,7 @@
             Controls.Add(Username_Label);
             Controls.Add(pictureBox1);
             FormBorderStyle = FormBorderStyle.FixedDialog;
-            Margin = new Padding(2, 2, 2, 2);
+            Margin = new Padding(2);
             MaximizeBox = false;
             Name = "LoginPage";
             StartPosition = FormStartPosition.CenterScreen;

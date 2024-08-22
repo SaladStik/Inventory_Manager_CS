@@ -14,7 +14,7 @@ namespace Inventory_Manager
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(History));
-            historyDataGridView = new DataGridView();
+            historyDataGridView = new BufferedDataGridView();
             searchHistory = new TextBox();
             searchHistoryButton = new Button();
             Print = new Button();
@@ -133,7 +133,7 @@ namespace Inventory_Manager
             PerformLayout();
         }
 
-        private System.Windows.Forms.DataGridView historyDataGridView;
+        private BufferedDataGridView historyDataGridView;
         private System.Windows.Forms.Button searchHistoryButton;
         private System.Windows.Forms.TextBox searchHistory;
         private Button Print;

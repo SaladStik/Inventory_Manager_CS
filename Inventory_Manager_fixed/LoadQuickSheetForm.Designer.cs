@@ -18,7 +18,7 @@
             quickSheetComboBox = new ComboBox();
             viewButton = new Button();
             printButton = new Button();
-            quickSheetDataGridView = new DataGridView();
+            quickSheetDataGridView = new BufferedDataGridView();
             ((System.ComponentModel.ISupportInitialize)quickSheetDataGridView).BeginInit();
             SuspendLayout();
             // 
@@ -81,7 +81,7 @@
         private System.Windows.Forms.ComboBox quickSheetComboBox;
         private System.Windows.Forms.Button viewButton;
         private System.Windows.Forms.Button printButton;
-        private System.Windows.Forms.DataGridView quickSheetDataGridView;
+        private BufferedDataGridView quickSheetDataGridView;
     }
 }
 
