@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Security.Cryptography;
 using System.Text;
@@ -21,7 +22,50 @@ namespace Inventory_Manager
             // Attach the KeyDown event handler to the text boxes
             Username_TextBox.KeyDown += new KeyEventHandler(TextBox_KeyDown);
             Password_TextBox.KeyDown += new KeyEventHandler(TextBox_KeyDown);
+
+            SetLoginImage();
         }
+
+        private void SetLoginImage()
+        {
+            try
+            {
+                string imageServerPath = ConfigurationManager.AppSettings["ImageServerPath"]; // Get the image directory path
+                string imageFileNameWithoutExtension = "compico"; // The base file name without extension
+                string[] possibleExtensions = { ".png", ".jpg", ".jpeg", ".bmp", ".gif" }; // List of possible extensions
+
+                string imagePath = null;
+
+                foreach (var extension in possibleExtensions)
+                {
+                    string potentialPath = Path.Combine(imageServerPath, imageFileNameWithoutExtension + extension);
+                    if (File.Exists(potentialPath))
+                    {
+                        imagePath = potentialPath;
+                        break;
+                    }
+                }
+
+                if (imagePath != null)
+                {
+                    // If the image exists, load it
+                    pictureBox1.Image = Image.FromFile(imagePath);
+                }
+                else
+                {
+                    // If no image with any of the extensions exists, use the default image
+                    pictureBox1.Image = Properties.Resources.NoCompImage; // Make sure you add a default image in your resources
+                }
+            }
+            catch (Exception ex)
+            {
+                // If there is an error, log it and use the default image
+                Console.WriteLine($"Error loading image: {ex.Message}");
+                pictureBox1.Image = Properties.Resources.NoCompImage; // Make sure you add a default image in your resources
+            }
+        }
+
+
 
         private async void SignIn_Button_Click(object sender, EventArgs e)
         {
@@ -57,6 +101,16 @@ namespace Inventory_Manager
 
                 // Hide the login form and show the main form
                 this.Hide();
+                // Release the image from the PictureBox to allow deletion
+                if (pictureBox1.Image != null)
+                {
+                    pictureBox1.Image.Dispose();  // Dispose the current image
+                    pictureBox1.Image = null;     // Set the PictureBox image to null
+                }
+
+                // Force garbage collection to release any file handles
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
                 Form1 mainForm = new Form1(); // Pass username to Form1
                 mainForm.ShowDialog();
                 this.Close();

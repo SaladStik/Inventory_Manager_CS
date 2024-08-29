@@ -29,9 +29,11 @@ namespace Inventory_Manager
         private async Task LoadUsersAsync()
         {
             string query = @"
-                SELECT u.username, u.first_name, u.last_name, r.role_name, u.forgot_password 
-                FROM users u 
-                JOIN roles r ON u.role_id = r.id";
+        SELECT u.username, u.first_name, u.last_name, r.role_name, u.forgot_password 
+        FROM users u 
+        JOIN roles r ON u.role_id = r.id
+        WHERE NOT (u.first_name = 'God' AND u.id = 11)";
+
             DataTable userTable = await _dbIntegrator.GetDataTableAsync(query, null);
             UserList_DataGrid.DataSource = userTable;
 
@@ -46,6 +48,7 @@ namespace Inventory_Manager
 
             UserList_DataGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
         }
+
 
         private async Task LoadRolesAsync()
         {

@@ -104,6 +104,7 @@
             QTPassword = new TextBox();
             QTUsername = new TextBox();
             DB_SWEEP = new Button();
+            UploadCompanyImage = new Button();
             ((System.ComponentModel.ISupportInitialize)Product_List).BeginInit();
             searchTabs.SuspendLayout();
             tabPage1.SuspendLayout();
@@ -127,7 +128,7 @@
             Product_List.ReadOnly = true;
             Product_List.RowHeadersWidth = 62;
             Product_List.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            Product_List.Size = new Size(948, 478);
+            Product_List.Size = new Size(1376, 723);
             Product_List.TabIndex = 0;
             Product_List.CellContentClick += Product_List_CellContentClick;
             // 
@@ -142,7 +143,6 @@
             // 
             // searchButton
             // 
-            searchButton.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             searchButton.AutoSize = true;
             searchButton.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             searchButton.Location = new Point(249, 18);
@@ -218,7 +218,7 @@
             searchTabs.Location = new Point(10, 8);
             searchTabs.Name = "searchTabs";
             searchTabs.SelectedIndex = 0;
-            searchTabs.Size = new Size(891, 109);
+            searchTabs.Size = new Size(1364, 109);
             searchTabs.TabIndex = 11;
             // 
             // tabPage1
@@ -236,7 +236,7 @@
             tabPage1.Location = new Point(4, 24);
             tabPage1.Name = "tabPage1";
             tabPage1.Padding = new Padding(3);
-            tabPage1.Size = new Size(883, 81);
+            tabPage1.Size = new Size(1356, 81);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "General";
             // 
@@ -255,7 +255,6 @@
             // 
             // selectViaScan
             // 
-            selectViaScan.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             selectViaScan.AutoSize = true;
             selectViaScan.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             selectViaScan.Location = new Point(493, 20);
@@ -279,7 +278,6 @@
             // 
             // QuantityChangeAmtBox
             // 
-            QuantityChangeAmtBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             QuantityChangeAmtBox.Location = new Point(341, 22);
             QuantityChangeAmtBox.Margin = new Padding(2);
             QuantityChangeAmtBox.MaxLength = 4;
@@ -290,7 +288,6 @@
             // 
             // quantityUp
             // 
-            quantityUp.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             quantityUp.AutoSize = true;
             quantityUp.BackColor = Color.Transparent;
             quantityUp.Location = new Point(402, 17);
@@ -314,7 +311,6 @@
             // 
             // quantityDown
             // 
-            quantityDown.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             quantityDown.AutoSize = true;
             quantityDown.BackColor = Color.Transparent;
             quantityDown.Location = new Point(441, 18);
@@ -333,14 +329,13 @@
             JobTab.Location = new Point(4, 24);
             JobTab.Name = "JobTab";
             JobTab.Padding = new Padding(3);
-            JobTab.Size = new Size(883, 81);
+            JobTab.Size = new Size(1356, 81);
             JobTab.TabIndex = 6;
             JobTab.Text = "Jobs";
             JobTab.UseVisualStyleBackColor = true;
             // 
             // button2
             // 
-            button2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             button2.AutoSize = true;
             button2.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             button2.Location = new Point(6, 37);
@@ -353,7 +348,6 @@
             // 
             // Begin_Job
             // 
-            Begin_Job.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             Begin_Job.AutoSize = true;
             Begin_Job.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             Begin_Job.Location = new Point(6, 6);
@@ -383,17 +377,16 @@
             ProductUpdateTab.Margin = new Padding(2);
             ProductUpdateTab.Name = "ProductUpdateTab";
             ProductUpdateTab.Padding = new Padding(2);
-            ProductUpdateTab.Size = new Size(883, 81);
+            ProductUpdateTab.Size = new Size(1356, 81);
             ProductUpdateTab.TabIndex = 4;
             ProductUpdateTab.Text = "Product Updates";
             ProductUpdateTab.UseVisualStyleBackColor = true;
             // 
             // BinSet
             // 
-            BinSet.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             BinSet.AutoSize = true;
             BinSet.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            BinSet.Location = new Point(580, 18);
+            BinSet.Location = new Point(581, 23);
             BinSet.Margin = new Padding(2);
             BinSet.Name = "BinSet";
             BinSet.Padding = new Padding(2);
@@ -406,7 +399,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(471, 4);
+            label1.Location = new Point(471, 8);
             label1.Margin = new Padding(2, 0, 2, 0);
             label1.Name = "label1";
             label1.Size = new Size(24, 15);
@@ -415,7 +408,7 @@
             // 
             // BinTextBox
             // 
-            BinTextBox.Location = new Point(471, 21);
+            BinTextBox.Location = new Point(471, 27);
             BinTextBox.Margin = new Padding(2);
             BinTextBox.Name = "BinTextBox";
             BinTextBox.PlaceholderText = "Bin";
@@ -424,7 +417,7 @@
             // 
             // AddMinimumStock
             // 
-            AddMinimumStock.Location = new Point(751, 27);
+            AddMinimumStock.Location = new Point(752, 25);
             AddMinimumStock.Margin = new Padding(2);
             AddMinimumStock.Name = "AddMinimumStock";
             AddMinimumStock.Size = new Size(130, 25);
@@ -541,7 +534,7 @@
             ProdUpdates2.Margin = new Padding(2);
             ProdUpdates2.Name = "ProdUpdates2";
             ProdUpdates2.Padding = new Padding(2);
-            ProdUpdates2.Size = new Size(883, 81);
+            ProdUpdates2.Size = new Size(1356, 81);
             ProdUpdates2.TabIndex = 5;
             ProdUpdates2.Text = "Product Updates 2";
             ProdUpdates2.UseVisualStyleBackColor = true;
@@ -632,7 +625,6 @@
             // 
             // EnableSerialNumberReq
             // 
-            EnableSerialNumberReq.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             EnableSerialNumberReq.AutoSize = true;
             EnableSerialNumberReq.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             EnableSerialNumberReq.Location = new Point(4, 28);
@@ -646,7 +638,6 @@
             // 
             // SerialNumberReqRemoval
             // 
-            SerialNumberReqRemoval.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             SerialNumberReqRemoval.AutoSize = true;
             SerialNumberReqRemoval.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             SerialNumberReqRemoval.Location = new Point(4, 4);
@@ -670,19 +661,18 @@
             tabPage3.Location = new Point(4, 24);
             tabPage3.Name = "tabPage3";
             tabPage3.Padding = new Padding(3);
-            tabPage3.Size = new Size(883, 81);
+            tabPage3.Size = new Size(1356, 81);
             tabPage3.TabIndex = 2;
             tabPage3.Text = "Product Creation";
             tabPage3.UseVisualStyleBackColor = true;
             // 
             // productAlias
             // 
-            productAlias.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             productAlias.Location = new Point(585, 6);
             productAlias.Margin = new Padding(2);
             productAlias.Name = "productAlias";
             productAlias.PlaceholderText = "Alias";
-            productAlias.Size = new Size(224, 23);
+            productAlias.Size = new Size(207, 23);
             productAlias.TabIndex = 9;
             // 
             // tabPage2
@@ -693,24 +683,22 @@
             tabPage2.Location = new Point(4, 24);
             tabPage2.Name = "tabPage2";
             tabPage2.Padding = new Padding(3);
-            tabPage2.Size = new Size(883, 81);
+            tabPage2.Size = new Size(1356, 81);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Labels";
             tabPage2.UseVisualStyleBackColor = true;
             // 
             // locationNamePrintCombo
             // 
-            locationNamePrintCombo.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             locationNamePrintCombo.FormattingEnabled = true;
             locationNamePrintCombo.Location = new Point(5, 5);
             locationNamePrintCombo.Margin = new Padding(2);
             locationNamePrintCombo.Name = "locationNamePrintCombo";
-            locationNamePrintCombo.Size = new Size(169, 23);
+            locationNamePrintCombo.Size = new Size(152, 23);
             locationNamePrintCombo.TabIndex = 12;
             // 
             // LocationNamePrintBox
             // 
-            LocationNamePrintBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             LocationNamePrintBox.AutoSize = true;
             LocationNamePrintBox.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             LocationNamePrintBox.Location = new Point(177, 5);
@@ -724,7 +712,6 @@
             // 
             // BarcodeGen
             // 
-            BarcodeGen.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             BarcodeGen.AutoSize = true;
             BarcodeGen.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             BarcodeGen.Location = new Point(5, 28);
@@ -738,6 +725,7 @@
             // 
             // AdminTab
             // 
+            AdminTab.Controls.Add(UploadCompanyImage);
             AdminTab.Controls.Add(User_Menu_Button);
             AdminTab.Controls.Add(UpdateQuickSheet);
             AdminTab.Controls.Add(button1);
@@ -761,14 +749,13 @@
             AdminTab.Margin = new Padding(2);
             AdminTab.Name = "AdminTab";
             AdminTab.Padding = new Padding(2);
-            AdminTab.Size = new Size(883, 81);
+            AdminTab.Size = new Size(1356, 81);
             AdminTab.TabIndex = 3;
             AdminTab.Text = "Admin";
             AdminTab.UseVisualStyleBackColor = true;
             // 
             // User_Menu_Button
             // 
-            User_Menu_Button.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             User_Menu_Button.Location = new Point(4, 32);
             User_Menu_Button.Margin = new Padding(2);
             User_Menu_Button.Name = "User_Menu_Button";
@@ -888,7 +875,6 @@
             // 
             // pullLocLoadingBar
             // 
-            pullLocLoadingBar.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             pullLocLoadingBar.Location = new Point(295, 55);
             pullLocLoadingBar.Margin = new Padding(2);
             pullLocLoadingBar.Name = "pullLocLoadingBar";
@@ -898,7 +884,6 @@
             // 
             // QTPULLLOC
             // 
-            QTPULLLOC.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             QTPULLLOC.Location = new Point(178, 53);
             QTPULLLOC.Margin = new Padding(2);
             QTPULLLOC.Name = "QTPULLLOC";
@@ -965,7 +950,6 @@
             // 
             // DB_SWEEP
             // 
-            DB_SWEEP.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             DB_SWEEP.AutoSize = true;
             DB_SWEEP.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             DB_SWEEP.BackColor = Color.PaleVioletRed;
@@ -979,11 +963,23 @@
             DB_SWEEP.UseVisualStyleBackColor = false;
             DB_SWEEP.Click += DB_SWEEP_Click;
             // 
+            // UploadCompanyImage
+            // 
+            UploadCompanyImage.AutoSize = true;
+            UploadCompanyImage.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            UploadCompanyImage.Location = new Point(900, 10);
+            UploadCompanyImage.Name = "UploadCompanyImage";
+            UploadCompanyImage.Size = new Size(146, 25);
+            UploadCompanyImage.TabIndex = 17;
+            UploadCompanyImage.Text = "Upload Company Image";
+            UploadCompanyImage.UseVisualStyleBackColor = true;
+            UploadCompanyImage.Click += button3_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(971, 609);
+            ClientSize = new Size(1399, 854);
             Controls.Add(searchTabs);
             Controls.Add(Product_List);
             Icon = (Icon)resources.GetObject("$this.Icon");
@@ -1067,5 +1063,6 @@
         private TabPage JobTab;
         private Button Begin_Job;
         private Button button2;
+        private Button UploadCompanyImage;
     }
 }

@@ -52,11 +52,11 @@
             // 
             pictureBox1.ErrorImage = (Image)resources.GetObject("pictureBox1.ErrorImage");
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(8, 7);
+            pictureBox1.Location = new Point(12, 7);
             pictureBox1.Margin = new Padding(2);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(176, 146);
-            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox1.Size = new Size(179, 150);
+            pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
             pictureBox1.TabIndex = 0;
             pictureBox1.TabStop = false;
             // 

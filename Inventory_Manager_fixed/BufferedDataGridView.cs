@@ -30,10 +30,10 @@ namespace Inventory_Manager
             try
             {
                 // Scroll horizontally
-                int horizontalOffset = e.Delta > 0 ? ScrollSensitivity : -ScrollSensitivity; // Invert the scrolling direction
+                int horizontalOffset = e.Delta < 0 ? ScrollSensitivity : -ScrollSensitivity; // Scroll in the natural direction
                 int newHorizontalOffset = this.HorizontalScrollingOffset + horizontalOffset;
 
-                // Ensure the new offset is within valid range
+                // Ensure the new offset is within a valid range
                 newHorizontalOffset = Math.Max(0, newHorizontalOffset);
                 this.HorizontalScrollingOffset = newHorizontalOffset;
             }
@@ -52,10 +52,10 @@ namespace Inventory_Manager
                 if (ModifierKeys.HasFlag(Keys.Shift))
                 {
                     // Scroll horizontally
-                    int horizontalOffset = e.Delta > 0 ? ScrollSensitivity : -ScrollSensitivity; // Invert the scrolling direction
+                    int horizontalOffset = e.Delta < 0 ? ScrollSensitivity : -ScrollSensitivity; // Scroll in the natural direction
                     int newHorizontalOffset = this.HorizontalScrollingOffset + horizontalOffset;
 
-                    // Ensure the new offset is within valid range
+                    // Ensure the new offset is within a valid range
                     newHorizontalOffset = Math.Max(0, newHorizontalOffset);
                     this.HorizontalScrollingOffset = newHorizontalOffset;
 
@@ -68,7 +68,7 @@ namespace Inventory_Manager
                     int verticalOffset = e.Delta > 0 ? -SystemInformation.MouseWheelScrollLines : SystemInformation.MouseWheelScrollLines;
                     int newVerticalOffset = this.FirstDisplayedScrollingRowIndex + verticalOffset;
 
-                    // Ensure the new offset is within valid range
+                    // Ensure the new offset is within a valid range
                     newVerticalOffset = Math.Max(0, newVerticalOffset);
                     newVerticalOffset = Math.Min(newVerticalOffset, this.RowCount - 1);
                     this.FirstDisplayedScrollingRowIndex = newVerticalOffset;

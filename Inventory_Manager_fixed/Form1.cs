@@ -379,15 +379,27 @@ namespace Inventory_Manager
         {
             StoreCurrentSearchAndScrollPosition();
 
-            string query = select_Product;
+            // Assuming select_Product doesn't include an ORDER BY already
+            string query = @"
+        SELECT p.id, p.model_number, p.alias, p.type, p.quantity, p.barcode, p.require_serial_number, p.image_url, s.name AS supplier, p.supplier_link, p.min_stock, p.bin 
+        FROM product p 
+        LEFT JOIN supplier s ON p.supplier_id = s.id 
+        ORDER BY p.id ASC";
+
             DataTable dataTable = await _dbIntegrator.GetDataTableAsync(query, null);
 
             Product_List.DataSource = dataTable;
 
-            // Set the default sort column to "id"
+            // Hide the id column
             if (Product_List.Columns.Contains("id"))
             {
-                Product_List.Sort(Product_List.Columns["id"], ListSortDirection.Ascending);
+                Product_List.Columns["id"].Visible = false;
+            }
+
+            // Disable sorting for all columns
+            foreach (DataGridViewColumn column in Product_List.Columns)
+            {
+                column.SortMode = DataGridViewColumnSortMode.NotSortable;
             }
 
             if (selectedProductId.HasValue)
@@ -420,6 +432,9 @@ namespace Inventory_Manager
 
             RestoreSearchAndScrollPosition();
         }
+
+
+
 
 
 
@@ -1968,7 +1983,7 @@ namespace Inventory_Manager
             if (Product_List.FirstDisplayedScrollingRowIndex >= 0)
             {
                 _currentScrollRowIndex = Product_List.FirstDisplayedScrollingRowIndex;
-                
+
             }
             else
             {
@@ -2073,94 +2088,142 @@ namespace Inventory_Manager
             await _dbIntegrator.QueryAsync(query, null);
         }
 
-
-
-    }
-
-    public class CompanyInformation
-    {
-        public string name { get; set; }
-    }
-
-    public class LabelConfig
-    {
-        public int Width { get; set; }
-        public int Length { get; set; }
-    }
-
-    public class CustomBitmapRenderer : IBarcodeRenderer<Bitmap>
-    {
-
-        private string _labelConfigFile = "labelConfig.json"; // File to save label configurations
-        public LabelConfig _labelConfig; // Label configuration object
-
-        private void LoadLabelConfig()
+        private async void button3_Click(object sender, EventArgs e)
         {
-            if (File.Exists(_labelConfigFile))
+            // OpenFileDialog to select an image file
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
-                string json = File.ReadAllText(_labelConfigFile);
-                _labelConfig = JsonConvert.DeserializeObject<LabelConfig>(json);
-            }
-            else
-            {
-                _labelConfig = new LabelConfig();
-            }
-        }
-        public Bitmap Render(BitMatrix matrix, BarcodeFormat format, string content, EncodingOptions options)
-        {
-            LoadLabelConfig();
-            string[] parts = content.Split('|');
-            string alias = parts[0];
-            string barcodeText = parts[1];
+                openFileDialog.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.gif;*.bmp";
+                DialogResult result = openFileDialog.ShowDialog();
 
-            int width = _labelConfig.Width;
-            int height = _labelConfig.Length;
-            int margin = options?.Margin ?? 10;
-
-            Font aliasFont = new Font("Arial", 15);  // Font size 15 for alias
-            Font barcodeFont = new Font("Arial", 14);  // Font size 14 for barcode text
-
-            SizeF aliasSize;
-            SizeF barcodeSize;
-
-            using (var tempBitmap = new Bitmap(1, 1))
-            using (var graphics = Graphics.FromImage(tempBitmap))
-            {
-                aliasSize = graphics.MeasureString(alias, aliasFont);
-                barcodeSize = graphics.MeasureString(barcodeText, barcodeFont);
-            }
-
-            int totalHeight = height + margin + (int)barcodeSize.Height + (int)aliasSize.Height;
-            var bitmap = new Bitmap(width, totalHeight);
-
-            using (var graphics = Graphics.FromImage(bitmap))
-            {
-                graphics.Clear(Color.White);
-
-                graphics.DrawString(alias, aliasFont, Brushes.Black, new PointF((width - aliasSize.Width) / 2, 0));
-
-                for (int y = 0; y < height; y++)
+                if (result == DialogResult.OK)
                 {
-                    for (int x = 0; x < width; x++)
+                    try
                     {
-                        var color = matrix[x, y] ? Color.Black : Color.White;
-                        bitmap.SetPixel(x, y + (int)aliasSize.Height, color);
+                        // Get the selected file's extension
+                        string fileExtension = Path.GetExtension(openFileDialog.FileName);
+
+                        // Ensure the extension is one of the allowed types
+                        if (fileExtension == ".jpg" || fileExtension == ".jpeg" || fileExtension == ".png" || fileExtension == ".gif" || fileExtension == ".bmp")
+                        {
+                            // Define the destination directory and new file name
+                            string imageServerPath = ConfigurationManager.AppSettings["ImageServerPath"];
+                            string destFileName = $"compico{fileExtension}";
+                            string destPath = Path.Combine(imageServerPath, destFileName);
+
+                            // Delete any existing files with the same base name but different extensions
+                            foreach (var existingFile in Directory.GetFiles(imageServerPath, "compico.*"))
+                            {
+                                File.Delete(existingFile);
+                            }
+
+                            // Copy the file to the destination directory
+                            File.Copy(openFileDialog.FileName, destPath, true);
+
+                            // Optional: You can display a success message or perform additional actions
+                            MessageBox.Show("Image uploaded successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        else
+                        {
+                            MessageBox.Show("Invalid file type. Please select a valid image file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Console.WriteLine(ex);
                     }
                 }
+            }
+        }
 
-                graphics.DrawString(barcodeText, barcodeFont, Brushes.Black, new PointF((width - barcodeSize.Width) / 2, height + margin + aliasSize.Height));
+
+
+        public class CompanyInformation
+        {
+            public string name { get; set; }
+        }
+
+        public class LabelConfig
+        {
+            public int Width { get; set; }
+            public int Length { get; set; }
+        }
+
+        public class CustomBitmapRenderer : IBarcodeRenderer<Bitmap>
+        {
+
+            private string _labelConfigFile = "labelConfig.json"; // File to save label configurations
+            public LabelConfig _labelConfig; // Label configuration object
+
+            private void LoadLabelConfig()
+            {
+                if (File.Exists(_labelConfigFile))
+                {
+                    string json = File.ReadAllText(_labelConfigFile);
+                    _labelConfig = JsonConvert.DeserializeObject<LabelConfig>(json);
+                }
+                else
+                {
+                    _labelConfig = new LabelConfig();
+                }
+            }
+            public Bitmap Render(BitMatrix matrix, BarcodeFormat format, string content, EncodingOptions options)
+            {
+                LoadLabelConfig();
+                string[] parts = content.Split('|');
+                string alias = parts[0];
+                string barcodeText = parts[1];
+
+                int width = _labelConfig.Width;
+                int height = _labelConfig.Length;
+                int margin = options?.Margin ?? 10;
+
+                Font aliasFont = new Font("Arial", 15);  // Font size 15 for alias
+                Font barcodeFont = new Font("Arial", 14);  // Font size 14 for barcode text
+
+                SizeF aliasSize;
+                SizeF barcodeSize;
+
+                using (var tempBitmap = new Bitmap(1, 1))
+                using (var graphics = Graphics.FromImage(tempBitmap))
+                {
+                    aliasSize = graphics.MeasureString(alias, aliasFont);
+                    barcodeSize = graphics.MeasureString(barcodeText, barcodeFont);
+                }
+
+                int totalHeight = height + margin + (int)barcodeSize.Height + (int)aliasSize.Height;
+                var bitmap = new Bitmap(width, totalHeight);
+
+                using (var graphics = Graphics.FromImage(bitmap))
+                {
+                    graphics.Clear(Color.White);
+
+                    graphics.DrawString(alias, aliasFont, Brushes.Black, new PointF((width - aliasSize.Width) / 2, 0));
+
+                    for (int y = 0; y < height; y++)
+                    {
+                        for (int x = 0; x < width; x++)
+                        {
+                            var color = matrix[x, y] ? Color.Black : Color.White;
+                            bitmap.SetPixel(x, y + (int)aliasSize.Height, color);
+                        }
+                    }
+
+                    graphics.DrawString(barcodeText, barcodeFont, Brushes.Black, new PointF((width - barcodeSize.Width) / 2, height + margin + aliasSize.Height));
+                }
+
+                return bitmap;
             }
 
-            return bitmap;
+            public Bitmap Render(BitMatrix matrix, BarcodeFormat format, string content)
+            {
+                return Render(matrix, format, content, null);
+            }
+
+
         }
 
-        public Bitmap Render(BitMatrix matrix, BarcodeFormat format, string content)
-        {
-            return Render(matrix, format, content, null);
-        }
 
-         
     }
-
-
-}
+}   
